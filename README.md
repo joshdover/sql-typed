@@ -2,12 +2,12 @@
 
 This repo is a work in progress.
 
-TypedSQL is a simple, typesafe SQL DSL implementation in TypeScript that aims to provide a natural
-SQL interface for TypeScript applications. Goals of TypedSQL:
-- **No magic.** TypedSQL is not an ORM, you need to know SQL to use TypedSQL.
+SQLTyped is a simple, typesafe SQL DSL implementation in TypeScript that aims to provide a natural
+SQL interface for TypeScript applications. Goals of SQLTyped:
+- **No magic.** SQLTyped is not an ORM, you need to know SQL to use SQLTyped.
 - **No performance surprises.** The DSL looks like SQL and compiles down to predictable queries.
 - **Full type safety.** The DSL should never allow invalid queries.
-- **As few dependencies as possible.** As of now, TypedSQL only depends on the `pg` module for querying PostgreSQL.
+- **As few dependencies as possible.** As of now, SQLTyped only depends on the `pg` module for querying PostgreSQL.
 
 ```
 npm install sql-typed
@@ -16,7 +16,7 @@ npm install sql-typed
 ## Basic Example
 
 ```typescript
-import { createPool, table, column, TableAttributes, ColumnType } from 'typed-sql';
+import { createPool, table, column, TableAttributes, ColumnType } from 'sql-typed';
 
 interface User extends TableAttributes {
   id: number;
