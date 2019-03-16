@@ -1,6 +1,6 @@
 {
   "name": "sql-typed",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Typesafe query builder written in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
