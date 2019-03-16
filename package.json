@@ -1,0 +1,27 @@
+{
+  "name": "typed-sql",
+  "version": "0.1.0",
+  "description": "Typesafe query builder written in TypeScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/joshdover/typed-sql"
+  },
+  "author": "Josh Dover",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/pg": "^7.4.13",
+    "jest": "^24.3.1",
+    "prettier": "^1.16.4",
+    "ts-jest": "^24.0.0",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2"
+  }
+}
