@@ -1,14 +1,16 @@
 {
-  "name": "typed-sql",
+  "name": "sql-typed",
   "version": "0.1.0",
   "description": "Typesafe query builder written in TypeScript",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "github.com/joshdover/typed-sql"
+    "url": "github.com/joshdover/sql-typed"
   },
   "author": "Josh Dover",
   "license": "ISC",

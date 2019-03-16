@@ -1,4 +1,4 @@
-# TypedSQL
+# SQLTyped
 
 This repo is a work in progress.
 
@@ -8,6 +8,10 @@ SQL interface for TypeScript applications. Goals of TypedSQL:
 - **No performance surprises.** The DSL looks like SQL and compiles down to predictable queries.
 - **Full type safety.** The DSL should never allow invalid queries.
 - **As few dependencies as possible.** As of now, TypedSQL only depends on the `pg` module for querying PostgreSQL.
+
+```
+npm install sql-typed
+```
 
 ## Basic Example
 

@@ -2,7 +2,6 @@ import {
   TableAttributes,
   Columns,
   Table,
-  Insert,
   ColumnConfig,
   StringColumn,
   Column,

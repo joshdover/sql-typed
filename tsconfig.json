@@ -11,6 +11,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
+    "declaration": true,
     "plugins": [{ "name": "tslint-language-service" }]
   },
   "compileOnSave": true,
