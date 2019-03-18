@@ -1,15 +1,11 @@
 import {
   TableAttributes,
   Update,
-  Query,
-  Columns,
   Expression,
   ColumnsValues,
   Table,
   Transaction,
-  TableAttribute
 } from "./types";
-import { QueryImpl } from "./query";
 import { addToValues } from "./values";
 import { compileExpressions } from "./expression_compiler";
 
