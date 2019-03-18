@@ -37,7 +37,10 @@ const pool = createPool({
 
 pool.transaction(async transaction => {
   // Create a user
-  const insertedUser = await userTable.insert(user).execute({ id: 1, name: 'Josh' });
+  const insertedUser = await userTable
+    .insert()
+    .values([{ id: 1, name: 'Josh' }])
+    .execute(transaction);
 
   // Simple query
   const usersNamedJosh = await userTable
