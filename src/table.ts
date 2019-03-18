@@ -12,6 +12,7 @@ import {
 import { QueryImpl } from "./query";
 import { StringColumnImpl, NumberColumnImpl } from "./column";
 import { InsertImpl } from "./insert";
+import { UpdateImpl } from "./update";
 
 function getColumn(column: ColumnConfig<string>, tab: Table<any>): StringColumn;
 function getColumn(column: ColumnConfig<number>, tab: Table<any>): NumberColumn;
@@ -66,9 +67,8 @@ export const table = <T extends TableAttributes>(
     return new QueryImpl(selectColumns || tab.columns);
   };
 
-  tab.insert = (obj: T | T[]) => {
-    return new InsertImpl<T>(tab, obj);
-  };
+  tab.insert = () => new InsertImpl<T>(tab);
+  tab.update = () => new UpdateImpl<T>(tab);
 
   return tab;
 };

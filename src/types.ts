@@ -19,7 +19,7 @@ export interface Transaction {
   nested<T>(cb: (transaction: Transaction) => Promise<T>): Promise<T>;
 }
 
-export type TableAttribute = string | number;
+export type TableAttribute = string | number | null;
 export type TableAttributes = { [columnName: string]: TableAttribute };
 
 export interface Expression {
@@ -101,11 +101,16 @@ export type Columns<T extends TableAttributes> = {
   readonly [P in keyof T]: TypedColumn<T[P]>
 };
 
+export type ColumnsValues<T extends TableAttributes> = {
+  readonly [P in keyof T]?: T[P];
+}
+
 export interface Table<T extends TableAttributes> {
   readonly tableName: string;
   readonly columns: Columns<T>;
   select: SelectFunc<T>;
-  insert: InsertFunc<T>;
+  insert(): Insert<T>;
+  update(): Update<T>;
 }
 
 interface SelectFunc<T extends TableAttributes> {
@@ -113,14 +118,27 @@ interface SelectFunc<T extends TableAttributes> {
   <C extends TableAttributes>(columns: Columns<C>): Query<C, Columns<C>>;
 }
 
-interface InsertFunc<T extends TableAttributes> {
-  (obj: T[]): Insert<T[]>;
-  (obj: T): Insert<T>;
+export interface Insert<T extends TableAttributes> {
+  values(objs: T[]): InsertValues<T>;
+  from(query: Query<T, Columns<T>>): InsertFromQuery<T>;
 }
 
-export interface Insert<T> {
+export interface InsertValues<T> {
   compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<T>;
+  execute(transaction: Transaction): Promise<T[]>;
+}
+
+export interface InsertFromQuery<T extends TableAttributes> {
+  compile(): CompiledQuery;
+  execute(transaction: Transaction): Promise<T[]>;
+}
+
+export interface Update<T extends TableAttributes> {
+  // TODO: support expressions in addition to static values.
+  set<C extends keyof T>(valuesOrColumn: ColumnsValues<T>): Update<T>;
+  where(expression: Expression): Update<T>;
+  compile(): CompiledQuery;
+  execute(transaction: Transaction): Promise<T[]>;
 }
 
 export type CompiledQuery = QueryConfig;

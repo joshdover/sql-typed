@@ -45,15 +45,24 @@ describe('TypedSQL', () => {
     });
   }
 
-  it('inserts data', withTransaction(async (transaction) => {
+  it('can insert data', withTransaction(async (transaction) => {
     const user = { id: 1, name: 'Josh' };
 
-    const insertedUser = await userTable.insert(user).execute(transaction);
+    const [insertedUser] = await userTable.insert().values([user]).execute(transaction);
     expect(insertedUser).toEqual(user);
-
-    await transaction.commit();
 
     const [queriedUser] = await userTable.select().where(userTable.columns.id.eqls(1)).execute(transaction);
     expect(queriedUser).toEqual(user);
+  }));
+
+  it('can update data', withTransaction(async (transaction) => {
+    const user = { id: 1, name: 'Josh' };
+
+    await userTable.insert().values([user]).execute(transaction);
+    const [updatedUser] = await userTable.update().set({ name: 'Dover' }).execute(transaction);
+    expect(updatedUser).toEqual({ id: 1, name: 'Dover' });
+
+    const [queriedUser] = await userTable.select().where(userTable.columns.id.eqls(1)).execute(transaction);
+    expect(queriedUser).toEqual({ id: 1, name: 'Dover' });
   }));
 });
