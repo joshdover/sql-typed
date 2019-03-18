@@ -8,8 +8,10 @@ import {
 export type PoolConfig = PGPoolConfig;
 
 export interface Pool {
-  connect: PGPool['connect'],
-  transaction<T>(cb: (transaction: Transaction) => Promise<T>): Promise<T | void>;
+  connect: PGPool["connect"];
+  transaction<T>(
+    cb: (transaction: Transaction) => Promise<T>
+  ): Promise<T | void>;
 }
 
 export interface Transaction {
@@ -92,9 +94,10 @@ export interface NumberColumn extends Column<number> {
   gte(number: number): ComparisonExpression<number>;
 }
 
-type TypedColumn<T extends TableAttribute> =
-  T extends string ? StringColumn :
-  T extends number ? NumberColumn
+type TypedColumn<T extends TableAttribute> = T extends string
+  ? StringColumn
+  : T extends number
+  ? NumberColumn
   : Column<T>;
 
 export type Columns<T extends TableAttributes> = {
@@ -102,8 +105,8 @@ export type Columns<T extends TableAttributes> = {
 };
 
 export type ColumnsValues<T extends TableAttributes> = {
-  readonly [P in keyof T]?: T[P];
-}
+  readonly [P in keyof T]?: T[P]
+};
 
 export interface Table<T extends TableAttributes> {
   readonly tableName: string;

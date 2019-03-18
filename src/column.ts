@@ -85,14 +85,20 @@ class BaseColumnImpl<T extends TableAttribute> implements Column<T> {
 
 export class StringColumnImpl extends BaseColumnImpl<string>
   implements StringColumn {
-  public readonly like = (string: string): ComparisonExpression<string> => this.comparisonExpression(ColumnOp.Like, string);
+  public readonly like = (string: string): ComparisonExpression<string> =>
+    this.comparisonExpression(ColumnOp.Like, string);
 }
 
-export class NumberColumnImpl extends BaseColumnImpl<number> implements NumberColumn {
-  public readonly lt = (number: number) => this.comparisonExpression(ColumnOp.LessThan, number);
-  public readonly lte = (number: number) => this.comparisonExpression(ColumnOp.LessThanOrEqual, number);
-  public readonly gt = (number: number) => this.comparisonExpression(ColumnOp.GreaterThan, number);
-  public readonly gte = (number: number) => this.comparisonExpression(ColumnOp.GreaterThanOrEqual, number);
+export class NumberColumnImpl extends BaseColumnImpl<number>
+  implements NumberColumn {
+  public readonly lt = (number: number) =>
+    this.comparisonExpression(ColumnOp.LessThan, number);
+  public readonly lte = (number: number) =>
+    this.comparisonExpression(ColumnOp.LessThanOrEqual, number);
+  public readonly gt = (number: number) =>
+    this.comparisonExpression(ColumnOp.GreaterThan, number);
+  public readonly gte = (number: number) =>
+    this.comparisonExpression(ColumnOp.GreaterThanOrEqual, number);
 }
 
 /**

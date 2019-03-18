@@ -14,7 +14,10 @@ describe("insert compilation", () => {
 
   it("compiles a multi insert", () => {
     expect(
-      t.insert().values([{ id: 1, name: "Josh" }, { id: 2, name: "Reina" }]).compile()
+      t
+        .insert()
+        .values([{ id: 1, name: "Josh" }, { id: 2, name: "Reina" }])
+        .compile()
     ).toMatchInlineSnapshot(`
 Object {
   "text": "INSERT INTO users(id, name) VALUES ($1, $2), ($3, $4) RETURNING *",

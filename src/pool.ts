@@ -4,16 +4,22 @@ import {
   PoolConfig as PGPoolConfig
 } from "pg";
 
-import { Pool, Transaction } from './types';
+import { Pool, Transaction } from "./types";
 
 /**
  * Returns a connection pool with a high-level transaction interface.
  * @param config
  */
-export const createPool = (config?: PGPoolConfig, { echo } = { echo: false }): Pool => {
+export const createPool = (
+  config?: PGPoolConfig,
+  { echo } = { echo: false }
+): Pool => {
   const pool = new PGPool(config);
 
-  const getNested = async (client: PGPoolClient, level = 0): Promise<Transaction> => {
+  const getNested = async (
+    client: PGPoolClient,
+    level = 0
+  ): Promise<Transaction> => {
     await client.query(`SAVEPOINT nested_${level}`);
 
     return {
@@ -82,7 +88,7 @@ export const createPool = (config?: PGPoolConfig, { echo } = { echo: false }): P
           console.log(args);
           // @ts-ignore
           return query_(...args);
-        }
+        };
       }
 
       const transaction = await getTransaction(client);

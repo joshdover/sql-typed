@@ -4,4 +4,4 @@ export const addToValues = (values: any[], newValue: any) => {
     valueIdx,
     values: [...values, newValue]
   };
-}
+};

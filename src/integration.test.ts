@@ -3,7 +3,7 @@ import { table } from "./table";
 import { column } from "./column";
 import { createPool } from "./pool";
 
-describe('TypedSQL', () => {
+describe("TypedSQL", () => {
   interface User extends TableAttributes {
     id: number;
     name: string;
@@ -14,10 +14,10 @@ describe('TypedSQL', () => {
   });
 
   const pool = createPool({
-    host: 'localhost',
-    user: 'postgres',
-    password: 'postgres',
-    database: 'postgres',
+    host: "localhost",
+    user: "postgres",
+    password: "postgres",
+    database: "postgres"
   });
 
   // Create tables
@@ -28,41 +28,64 @@ describe('TypedSQL', () => {
         id int primary key,
         name varchar(256) not null
       );
-    `)
+    `);
     return client.release();
-  })
+  });
 
   /**
    * The simplest of test harnesses that rolls back any changes to the database.
-   * @param testFunc 
+   * @param testFunc
    */
-  const withTransaction = (testFunc: (transaction: Transaction) => Promise<any>) => async () => {
+  const withTransaction = (
+    testFunc: (transaction: Transaction) => Promise<any>
+  ) => async () => {
     await pool.transaction(async transaction => {
       await transaction.nested(testFunc);
 
       // Undo any changes by the test
       await transaction.rollback();
     });
-  }
+  };
 
-  it('can insert data', withTransaction(async (transaction) => {
-    const user = { id: 1, name: 'Josh' };
+  it(
+    "can insert data",
+    withTransaction(async transaction => {
+      const user = { id: 1, name: "Josh" };
 
-    const [insertedUser] = await userTable.insert().values([user]).execute(transaction);
-    expect(insertedUser).toEqual(user);
+      const [insertedUser] = await userTable
+        .insert()
+        .values([user])
+        .execute(transaction);
+      expect(insertedUser).toEqual(user);
 
-    const [queriedUser] = await userTable.select().where(userTable.columns.id.eqls(1)).execute(transaction);
-    expect(queriedUser).toEqual(user);
-  }));
+      const [queriedUser] = await userTable
+        .select()
+        .where(userTable.columns.id.eqls(1))
+        .execute(transaction);
+      expect(queriedUser).toEqual(user);
+    })
+  );
 
-  it('can update data', withTransaction(async (transaction) => {
-    const user = { id: 1, name: 'Josh' };
+  it(
+    "can update data",
+    withTransaction(async transaction => {
+      const user = { id: 1, name: "Josh" };
 
-    await userTable.insert().values([user]).execute(transaction);
-    const [updatedUser] = await userTable.update().set({ name: 'Dover' }).execute(transaction);
-    expect(updatedUser).toEqual({ id: 1, name: 'Dover' });
+      await userTable
+        .insert()
+        .values([user])
+        .execute(transaction);
+      const [updatedUser] = await userTable
+        .update()
+        .set({ name: "Dover" })
+        .execute(transaction);
+      expect(updatedUser).toEqual({ id: 1, name: "Dover" });
 
-    const [queriedUser] = await userTable.select().where(userTable.columns.id.eqls(1)).execute(transaction);
-    expect(queriedUser).toEqual({ id: 1, name: 'Dover' });
-  }));
+      const [queriedUser] = await userTable
+        .select()
+        .where(userTable.columns.id.eqls(1))
+        .execute(transaction);
+      expect(queriedUser).toEqual({ id: 1, name: "Dover" });
+    })
+  );
 });

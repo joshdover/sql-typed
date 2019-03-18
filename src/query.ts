@@ -4,7 +4,7 @@ import {
   Transaction,
   Query,
   CompiledQuery,
-  Columns,
+  Columns
 } from "./types";
 import { compileExpressions } from "./expression_compiler";
 
@@ -54,7 +54,10 @@ export class QueryImpl<T extends TableAttributes, C extends Columns<T>>
 
   private compileWhere() {
     if (this.expressions.length) {
-      const { expression, values } = compileExpressions(this.columns, this.expressions);
+      const { expression, values } = compileExpressions(
+        this.columns,
+        this.expressions
+      );
       return {
         where: ` WHERE ${expression}`,
         values
