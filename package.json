@@ -13,7 +13,7 @@
     "url": "github.com/joshdover/sql-typed"
   },
   "author": "Josh Dover",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "dependencies": {
     "pg": "^7.8.0"
   },
