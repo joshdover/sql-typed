@@ -22,7 +22,7 @@ export interface Transaction {
 }
 
 export type TableAttribute = string | number | null;
-export type TableAttributes = { [columnName: string]: TableAttribute };
+export type TableAttributes = { [columnName: string]: TableAttribute | null };
 
 export interface Expression {
   and(condition: Expression): ComposedExpression;

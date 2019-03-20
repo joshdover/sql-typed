@@ -15,7 +15,7 @@ import { addToValues } from "./values";
 const joinExpressions = (expressions: Expression[]): Expression => {
   return expressions.reduce(
     (rootExp, nextExp) => rootExp.and(nextExp),
-    expressions.pop().and(expressions.pop())
+    expressions.pop()!.and(expressions.pop()!)
   );
 };
 
@@ -138,26 +138,26 @@ const getColumnName = (columns: Columns<any>, column: Column<any>): string => {
 };
 
 function isComposedExpr(expr: Expression): expr is ComposedExpression {
-  const compExp = expr;
+  const compExp = expr as ComposedExpression;
   return Boolean(compExp.left && compExp.right && compExp.op !== undefined);
 }
 
 function isColumnExpression(
   expr: Expression
 ): expr is ColumnExpression<TableAttribute> {
-  const colExp = expr;
+  const colExp = expr as ColumnExpression<any>;
   return Boolean(colExp.column && colExp.op !== undefined);
 }
 
 function isComparisonExpression(
   expr: ColumnExpression<any>
 ): expr is ComparisonExpression<any> {
-  const compExp = expr;
+  const compExp = expr as ComparisonExpression<any>;
   return Boolean(compExp.value !== undefined);
 }
 
 function isNotExpression(expr: Expression): expr is NotExpression {
-  const notExp = expr;
+  const notExp = expr as NotExpression;
   return Boolean(notExp.isNot && notExp.expression);
 }
 
