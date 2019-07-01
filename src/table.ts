@@ -9,12 +9,14 @@ import {
   ColumnType,
   NumberColumn,
   primaryKey,
-  PrimaryKeyColumn
+  PrimaryKeyColumn,
+  ColumnConfigs
 } from "./types";
 import { QueryImpl } from "./query";
 import { StringColumnImpl, NumberColumnImpl } from "./column";
 import { InsertImpl } from "./insert";
 import { UpdateImpl } from "./update";
+import { MigrationImpl } from "./migration";
 
 function getColumn(column: ColumnConfig<string>, tab: Table<any>): StringColumn;
 function getColumn(
@@ -60,7 +62,7 @@ function isNumberColumn<T extends TableAttribute>(
  */
 export const table = <T extends TableAttributes>(
   tableName: string,
-  columns: { [P in keyof T]: ColumnConfig<T[P]> }
+  columns: ColumnConfigs<T>
 ): Table<T> => {
   const tab = {
     tableName
@@ -75,6 +77,7 @@ export const table = <T extends TableAttributes>(
   );
 
   tab.columns = tableColumns;
+  tab.columnConfigs = columns;
 
   tab.select = (selectColumns?: Columns<any>) => {
     return new QueryImpl(selectColumns || tab.columns);
@@ -82,6 +85,7 @@ export const table = <T extends TableAttributes>(
 
   tab.insert = () => new InsertImpl<T>(tab);
   tab.update = () => new UpdateImpl<T>(tab);
+  tab.migrate = () => new MigrationImpl<T>(tab);
 
   return tab;
 };

@@ -76,6 +76,12 @@ export enum ColumnType {
 export interface ColumnConfig<T extends TableAttribute> {
   readonly type: ColumnType;
   readonly nullable?: boolean;
+  readonly options?: string;
+  readonly databaseType?: string;
+}
+
+export type ColumnConfigs<T extends TableAttributes> = {
+  [P in keyof T]: ColumnConfig<T[P]>
 }
 
 export interface Column<T extends TableAttribute> {
@@ -117,9 +123,11 @@ export type ColumnsValues<T extends TableAttributes> = {
 export interface Table<T extends TableAttributes> {
   readonly tableName: string;
   readonly columns: Columns<T>;
+  readonly columnConfigs: ColumnConfigs<T>;
   select: SelectFunc<T>;
   insert(): Insert<T>;
   update(): Update<T>;
+  migrate(): Migration;
 }
 
 interface SelectFunc<T extends TableAttributes> {
@@ -163,6 +171,11 @@ export interface Query<T extends TableAttributes, C extends Columns<T>> {
   groupBy: GroupByFunc;
   compile(): CompiledQuery;
   execute(transaction: Transaction): Promise<T[]>;
+}
+
+export interface Migration {
+  compile(): CompiledQuery;
+  execute(transaction: Transaction): Promise<void>;
 }
 
 interface GroupByFunc {
