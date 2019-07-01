@@ -21,7 +21,8 @@ export interface Transaction {
   nested<T>(cb: (transaction: Transaction) => Promise<T>): Promise<T>;
 }
 
-export type TableAttribute = string | number | null;
+export type primaryKey = number;
+export type TableAttribute = string | number | primaryKey | null;
 export type TableAttributes = { [columnName: string]: TableAttribute };
 
 export interface Expression {
@@ -67,8 +68,9 @@ export interface ComparisonExpression<T extends TableAttribute>
 }
 
 export enum ColumnType {
-  String,
-  Number
+  String = 0,
+  Number = 1,
+  PrimaryKey = 2,
 }
 
 export interface ColumnConfig<T extends TableAttribute> {
@@ -94,8 +96,12 @@ export interface NumberColumn extends Column<number> {
   gte(number: number): ComparisonExpression<number>;
 }
 
+export type PrimaryKeyColumn = NumberColumn;
+
 type TypedColumn<T extends TableAttribute> = T extends string
   ? StringColumn
+  : T extends primaryKey
+  ? PrimaryKeyColumn
   : T extends number
   ? NumberColumn
   : Column<T>;
@@ -121,8 +127,13 @@ interface SelectFunc<T extends TableAttributes> {
   <C extends TableAttributes>(columns: Columns<C>): Query<C, Columns<C>>;
 }
 
+type NonPrimaryKeys<T extends TableAttributes> = {
+  [P in keyof T]: T[P] extends primaryKey ? never : P;
+}[keyof T];
+export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<T, NonPrimaryKeys<T>>;
+
 export interface Insert<T extends TableAttributes> {
-  values(objs: T[]): InsertValues<T>;
+  values(objs: Array<T | WithoutPrimaryKeys<T>>): InsertValues<T>;
   from(query: Query<T, Columns<T>>): InsertFromQuery<T>;
 }
 

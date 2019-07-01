@@ -25,12 +25,20 @@ describe("TypedSQL", () => {
     const client = await pool.connect();
     await client.query(`
       CREATE TABLE IF NOT EXISTS users(
-        id int primary key,
+        id serial,
         name varchar(256) not null
       );
     `);
     return client.release();
   });
+
+  afterAll(async () => {
+    const client = await pool.connect();
+    await client.query(`
+      DROP TABLE IF EXISTS users;
+    `);
+    return client.release();
+  })
 
   /**
    * The simplest of test harnesses that rolls back any changes to the database.
@@ -63,6 +71,27 @@ describe("TypedSQL", () => {
         .where(userTable.columns.id.eqls(1))
         .execute(transaction);
       expect(queriedUser).toEqual(user);
+    })
+  );
+
+  it(
+    "can insert data with primary keys",
+    withTransaction(async transaction => {
+      const user = { name: "John" };
+
+      const [insertedUser] = await userTable
+        .insert()
+        .values([user])
+        .execute(transaction);
+      // Postgres assigns an id
+      expect(insertedUser.id).toBeGreaterThan(0);
+      expect(insertedUser.name).toEqual("John");
+
+      const [queriedUser] = await userTable
+        .select()
+        .where(userTable.columns.id.eqls(1))
+        .execute(transaction);
+      expect(queriedUser.id).toEqual(insertedUser.id);
     })
   );
 

@@ -1,15 +1,50 @@
 import { table } from "./table";
 import { column } from "./column";
-import { TableAttributes, ColumnType } from "./types";
+import { TableAttributes, ColumnType, primaryKey } from "./types";
 
 describe("insert compilation", () => {
   interface User extends TableAttributes {
-    id: number;
+    id: primaryKey;
     name: string;
+    nickname: string | null;
   }
   const t = table<User>("users", {
-    id: column({ type: ColumnType.Number }),
-    name: column({ type: ColumnType.String })
+    id: column({ type: ColumnType.PrimaryKey }),
+    name: column({ type: ColumnType.String }),
+    nickname: column({ type: ColumnType.String, nullable: true })
+  });
+
+  it("allows not defining primary keys", () => {
+    expect(
+      t
+        .insert()
+        .values([{ name: "Josh" }])
+        .compile()
+    ).toMatchInlineSnapshot(`
+Object {
+  "text": "INSERT INTO users(name) VALUES ($1) RETURNING *",
+  "values": Array [
+    "Josh",
+  ],
+}
+`);
+  });
+
+  it("allows defining primary keys", () => {
+    expect(
+      t
+        .insert()
+        .values([{ id: 1, name: "Josh" }])
+        .compile()
+    ).toMatchInlineSnapshot(`
+Object {
+  "text": "INSERT INTO users(id, name) VALUES ($1, $2) RETURNING *",
+  "values": Array [
+    1,
+    "Josh",
+  ],
+}
+`);
   });
 
   it("compiles a multi insert", () => {
@@ -26,6 +61,30 @@ Object {
     "Josh",
     2,
     "Reina",
+  ],
+}
+`);
+  });
+
+  it("supports nullable fields", () => {
+    expect(
+      t
+        .insert()
+        .values([
+          { id: 1, name: "Josh" },
+          { id: 2, name: "Mia", nickname: "Click clack" }
+        ])
+        .compile()
+    ).toMatchInlineSnapshot(`
+Object {
+  "text": "INSERT INTO users(id, name, nickname) VALUES ($1, $2, $3), ($4, $5, $6) RETURNING *",
+  "values": Array [
+    1,
+    "Josh",
+    null,
+    2,
+    "Mia",
+    "Click clack",
   ],
 }
 `);

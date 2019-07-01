@@ -5,12 +5,17 @@ import {
   InsertValues,
   TableAttributes,
   Columns,
-  Query
+  Query,
+  WithoutPrimaryKeys
 } from "./types";
 import { addToValues } from "./values";
 
+function flatten(arr: Array<Array<any>>): Array<any> {
+  return arr.reduce((acc, item) => acc.concat(item), []);
+}
+
 class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
-  constructor(private readonly table: Table<T>, private readonly objs: T[]) {}
+  constructor(private readonly table: Table<T>, private readonly objs: Array<T | WithoutPrimaryKeys<T>>) {}
 
   public readonly execute = async (transaction: Transaction) => {
     const { rows } = await transaction.query(this.compile());
@@ -18,17 +23,23 @@ class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
   };
 
   public readonly compile = () => {
-    const columnOrder = Object.keys(this.table.columns);
-    const columnList = columnOrder.join(", ");
+    // Get list of columns in all objects
+    const presentColumns = flatten(
+      this.objs.map((obj: any) =>
+        Object.keys(obj).filter(key => obj[key] !== undefined
+      ))
+    );
+    const objColumns = [...new Set<string>(presentColumns).values()];
+    const columnList = objColumns.join(", ");
 
     let values: any[] = [];
     const nextValueIdx = (nextVal: any) => {
-      const nextValues = addToValues(values, nextVal);
+      const nextValues = addToValues(values, nextVal || null);
       values = nextValues.values;
       return nextValues.valueIdx;
     };
     const valuesIdxs = this.objs.map((obj: any) => {
-      const idxs = columnOrder.map(column => {
+      const idxs = objColumns.map(column => {
         const idx = nextValueIdx(obj[column]);
         return idx;
       });
@@ -69,7 +80,7 @@ class InsertFromImpl<T extends TableAttributes> implements InsertFromImpl<T> {
 export class InsertImpl<T extends TableAttributes> implements Insert<T> {
   constructor(private readonly table: Table<T>) {}
 
-  public readonly values = (objs: T[]) =>
+  public readonly values = (objs: Array<T | WithoutPrimaryKeys<T>>) =>
     new InsertValuesImpl(this.table, objs);
   public readonly from = (query: Query<T, Columns<T>>) =>
     new InsertFromImpl(this.table, query);
