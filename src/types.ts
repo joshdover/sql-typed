@@ -70,7 +70,7 @@ export interface ComparisonExpression<T extends TableAttribute>
 export enum ColumnType {
   String = 0,
   Number = 1,
-  PrimaryKey = 2,
+  PrimaryKey = 2
 }
 
 export interface ColumnConfig<T extends TableAttribute> {
@@ -82,7 +82,7 @@ export interface ColumnConfig<T extends TableAttribute> {
 
 export type ColumnConfigs<T extends TableAttributes> = {
   [P in keyof T]: ColumnConfig<T[P]>
-}
+};
 
 export interface Column<T extends TableAttribute> {
   config: ColumnConfig<T>;
@@ -137,9 +137,12 @@ interface SelectFunc<T extends TableAttributes> {
 }
 
 type NonPrimaryKeys<T extends TableAttributes> = {
-  [P in keyof T]: T[P] extends primaryKey ? never : P;
+  [P in keyof T]: T[P] extends primaryKey ? never : P
 }[keyof T];
-export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<T, NonPrimaryKeys<T>>;
+export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<
+  T,
+  NonPrimaryKeys<T>
+>;
 
 export interface Insert<T extends TableAttributes> {
   values(objs: Array<T | WithoutPrimaryKeys<T>>): InsertValues<T>;
@@ -150,7 +153,8 @@ export type InsertValues<T extends TableAttributes> = ExecutableQuery<T[]>;
 
 export type InsertFromQuery<T extends TableAttributes> = ExecutableQuery<T[]>;
 
-export interface Update<T extends TableAttributes> extends ExecutableQuery<T[]> {
+export interface Update<T extends TableAttributes>
+  extends ExecutableQuery<T[]> {
   // TODO: support expressions in addition to static values.
   set<C extends keyof T>(valuesOrColumn: ColumnsValues<T>): Update<T>;
   where(expression: Expression): Update<T>;
@@ -158,7 +162,8 @@ export interface Update<T extends TableAttributes> extends ExecutableQuery<T[]> 
 
 export type CompiledQuery = QueryConfig;
 
-export interface Query<T extends TableAttributes, C extends Columns<T>> extends ExecutableQuery<T[]> {
+export interface Query<T extends TableAttributes, C extends Columns<T>>
+  extends ExecutableQuery<T[]> {
   where(condition?: Expression): Query<T, C>;
   count(transaction: Transaction): Promise<number>;
   groupBy: GroupByFunc;
@@ -172,7 +177,7 @@ export interface ExecutableQuery<T> {
 // select column_name, data_type, character_maximum_length
 // from INFORMATION_SCHEMA.COLUMNS where table_name = '<name of table>';
 
-export type TableDefinition = Array<{ columnName: string; dataType: string; }>;
+export type TableDefinition = Array<{ columnName: string; dataType: string }>;
 
 export type Migration = ExecutableQuery<void>;
 

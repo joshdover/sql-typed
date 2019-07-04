@@ -73,7 +73,10 @@ export const createTable = <T extends TableAttributes>(
 class TableImpl<T extends TableAttributes> implements Table<T> {
   public readonly columns: Columns<T>;
 
-  constructor(public readonly tableName: string, public readonly columnConfigs: ColumnConfigs<T>) {
+  constructor(
+    public readonly tableName: string,
+    public readonly columnConfigs: ColumnConfigs<T>
+  ) {
     this.columns = Object.getOwnPropertyNames(columnConfigs).reduce(
       (tableCols, columnName) => {
         tableCols[columnName] = getColumn(columnConfigs[columnName], this);
@@ -83,7 +86,8 @@ class TableImpl<T extends TableAttributes> implements Table<T> {
     );
   }
 
-  public select = (selectColumns?: Columns<any>) => new QueryImpl<T, Columns<T>>(selectColumns || this.columns);
+  public select = (selectColumns?: Columns<any>) =>
+    new QueryImpl<T, Columns<T>>(selectColumns || this.columns);
   public insert = (): Insert<T> => new InsertImpl<T>(this);
   public update = (): Update<T> => new UpdateImpl<T>(this);
   public migrate = (): MigrationFactory => new MigrationFactoryImpl<T>(this);

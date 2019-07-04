@@ -15,7 +15,10 @@ function flatten(arr: Array<Array<any>>): Array<any> {
 }
 
 class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
-  constructor(private readonly table: Table<T>, private readonly objs: Array<T | WithoutPrimaryKeys<T>>) {}
+  constructor(
+    private readonly table: Table<T>,
+    private readonly objs: Array<T | WithoutPrimaryKeys<T>>
+  ) {}
 
   public readonly execute = async (transaction: Transaction) => {
     const { rows } = await transaction.query(this.compile());
@@ -26,8 +29,8 @@ class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
     // Get list of columns in all objects
     const presentColumns = flatten(
       this.objs.map((obj: any) =>
-        Object.keys(obj).filter(key => obj[key] !== undefined
-      ))
+        Object.keys(obj).filter(key => obj[key] !== undefined)
+      )
     );
     const objColumns = [...new Set<string>(presentColumns).values()];
     const columnList = objColumns.join(", ");

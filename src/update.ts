@@ -4,7 +4,7 @@ import {
   Expression,
   ColumnsValues,
   Table,
-  Transaction,
+  Transaction
 } from "./types";
 import { addToValues } from "./values";
 import { compileExpressions } from "./expression_compiler";

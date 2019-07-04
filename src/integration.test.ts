@@ -28,7 +28,7 @@ describe("TypedSQL", () => {
         name varchar(256) not null
       );
     `);
-    return client.release();
+    client.release();
   });
 
   afterAll(async () => {
@@ -36,8 +36,8 @@ describe("TypedSQL", () => {
     await client.query(`
       DROP TABLE IF EXISTS users;
     `);
-    return client.release();
-  })
+    client.release();
+  });
 
   /**
    * The simplest of test harnesses that rolls back any changes to the database.
