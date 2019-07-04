@@ -10,13 +10,14 @@ import {
   NumberColumn,
   primaryKey,
   PrimaryKeyColumn,
-  ColumnConfigs
+  ColumnConfigs,
+  Transaction
 } from "./types";
 import { QueryImpl } from "./query";
 import { StringColumnImpl, NumberColumnImpl } from "./column";
 import { InsertImpl } from "./insert";
 import { UpdateImpl } from "./update";
-import { MigrationImpl } from "./migration";
+import { MigrationFactoryImpl } from "./migration";
 
 function getColumn(column: ColumnConfig<string>, tab: Table<any>): StringColumn;
 function getColumn(
@@ -85,7 +86,15 @@ export const table = <T extends TableAttributes>(
 
   tab.insert = () => new InsertImpl<T>(tab);
   tab.update = () => new UpdateImpl<T>(tab);
-  tab.migrate = () => new MigrationImpl<T>(tab);
+  tab.migrate = () => new MigrationFactoryImpl<T>(tab);
+  tab.definition = (transaction: Transaction) =>
+    transaction.query({
+      text: `
+        SELECT column_name as columnName, data_type as dataType
+        FROM INFORMATION_SCHEMA.COLUMNS where table_name = $1
+      `,
+      values: [tableName]
+    });
 
   return tab;
 };

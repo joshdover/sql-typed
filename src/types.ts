@@ -127,7 +127,8 @@ export interface Table<T extends TableAttributes> {
   select: SelectFunc<T>;
   insert(): Insert<T>;
   update(): Update<T>;
-  migrate(): Migration;
+  migrate(): MigrationFactory;
+  definition(transaction: Transaction): Promise<TableDefinition>;
 }
 
 interface SelectFunc<T extends TableAttributes> {
@@ -145,37 +146,39 @@ export interface Insert<T extends TableAttributes> {
   from(query: Query<T, Columns<T>>): InsertFromQuery<T>;
 }
 
-export interface InsertValues<T> {
-  compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<T[]>;
-}
+export type InsertValues<T extends TableAttributes> = ExecutableQuery<T[]>;
 
-export interface InsertFromQuery<T extends TableAttributes> {
-  compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<T[]>;
-}
+export type InsertFromQuery<T extends TableAttributes> = ExecutableQuery<T[]>;
 
-export interface Update<T extends TableAttributes> {
+export interface Update<T extends TableAttributes> extends ExecutableQuery<T[]> {
   // TODO: support expressions in addition to static values.
   set<C extends keyof T>(valuesOrColumn: ColumnsValues<T>): Update<T>;
   where(expression: Expression): Update<T>;
-  compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<T[]>;
 }
 
 export type CompiledQuery = QueryConfig;
 
-export interface Query<T extends TableAttributes, C extends Columns<T>> {
+export interface Query<T extends TableAttributes, C extends Columns<T>> extends ExecutableQuery<T[]> {
   where(condition?: Expression): Query<T, C>;
   count(transaction: Transaction): Promise<number>;
   groupBy: GroupByFunc;
-  compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<T[]>;
 }
 
-export interface Migration {
+export interface ExecutableQuery<T> {
   compile(): CompiledQuery;
-  execute(transaction: Transaction): Promise<void>;
+  execute(transaction: Transaction): Promise<T>;
+}
+
+// select column_name, data_type, character_maximum_length
+// from INFORMATION_SCHEMA.COLUMNS where table_name = '<name of table>';
+
+export type TableDefinition = Array<{ columnName: string; dataType: string; }>;
+
+export type Migration = ExecutableQuery<void>;
+
+export interface MigrationFactory {
+  create(): Migration;
+  update(currentSchema: TableDefinition): Migration;
 }
 
 interface GroupByFunc {
