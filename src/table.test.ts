@@ -1,5 +1,4 @@
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 import { TableAttributes, ColumnType, primaryKey } from "./types";
 
 describe("table", () => {
@@ -9,9 +8,9 @@ describe("table", () => {
       email: string;
     }
 
-    const t = table<User>("users", {
-      id: column({ type: ColumnType.PrimaryKey }),
-      email: column({ type: ColumnType.String })
+    const t = createTable<User>("users", {
+      id: { type: ColumnType.PrimaryKey },
+      email: { type: ColumnType.String }
     });
 
     expect(t.tableName).toEqual("users");

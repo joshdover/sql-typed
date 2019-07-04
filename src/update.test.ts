@@ -1,16 +1,15 @@
 import { TableAttributes, ColumnType } from "./types";
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 
 describe("update compilation", () => {
   interface User extends TableAttributes {
     id: number;
     name: string;
   }
-  const t = table<User>("users", {
-    id: column({ type: ColumnType.Number }),
-    name: column({ type: ColumnType.String }),
-    optionalLastName: column({ type: ColumnType.String, nullable: true })
+  const t = createTable<User>("users", {
+    id: { type: ColumnType.Number },
+    name: { type: ColumnType.String },
+    optionalLastName: { type: ColumnType.String, nullable: true }
   });
 
   it("compiles a set update", () => {

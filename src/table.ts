@@ -11,7 +11,11 @@ import {
   primaryKey,
   PrimaryKeyColumn,
   ColumnConfigs,
-  Transaction
+  Transaction,
+  TableDefinition,
+  Insert,
+  Update,
+  MigrationFactory
 } from "./types";
 import { QueryImpl } from "./query";
 import { StringColumnImpl, NumberColumnImpl } from "./column";
@@ -61,40 +65,34 @@ function isNumberColumn<T extends TableAttribute>(
  * @param tableName
  * @param columns
  */
-export const table = <T extends TableAttributes>(
+export const createTable = <T extends TableAttributes>(
   tableName: string,
   columns: ColumnConfigs<T>
-): Table<T> => {
-  const tab = {
-    tableName
-  } as any;
+): Table<T> => new TableImpl<T>(tableName, columns);
 
-  const tableColumns: Columns<T> = Object.getOwnPropertyNames(columns).reduce(
-    (tableCols, columnName) => {
-      tableCols[columnName] = getColumn(columns[columnName], tab);
-      return tableCols;
-    },
-    {} as any
-  );
+class TableImpl<T extends TableAttributes> implements Table<T> {
+  public readonly columns: Columns<T>;
 
-  tab.columns = tableColumns;
-  tab.columnConfigs = columns;
+  constructor(public readonly tableName: string, public readonly columnConfigs: ColumnConfigs<T>) {
+    this.columns = Object.getOwnPropertyNames(columnConfigs).reduce(
+      (tableCols, columnName) => {
+        tableCols[columnName] = getColumn(columnConfigs[columnName], this);
+        return tableCols;
+      },
+      {} as any
+    );
+  }
 
-  tab.select = (selectColumns?: Columns<any>) => {
-    return new QueryImpl(selectColumns || tab.columns);
-  };
-
-  tab.insert = () => new InsertImpl<T>(tab);
-  tab.update = () => new UpdateImpl<T>(tab);
-  tab.migrate = () => new MigrationFactoryImpl<T>(tab);
-  tab.definition = (transaction: Transaction) =>
+  public select = (selectColumns?: Columns<any>) => new QueryImpl<T, Columns<T>>(selectColumns || this.columns);
+  public insert = (): Insert<T> => new InsertImpl<T>(this);
+  public update = (): Update<T> => new UpdateImpl<T>(this);
+  public migrate = (): MigrationFactory => new MigrationFactoryImpl<T>(this);
+  public definition = (transaction: Transaction): Promise<TableDefinition> =>
     transaction.query({
       text: `
         SELECT column_name as columnName, data_type as dataType
         FROM INFORMATION_SCHEMA.COLUMNS where table_name = $1
       `,
-      values: [tableName]
-    });
-
-  return tab;
-};
+      values: [this.tableName]
+    }) as Promise<any>;
+}

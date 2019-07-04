@@ -1,6 +1,5 @@
 import { TableAttributes, ColumnType, Transaction } from "./types";
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 import { createPool } from "./pool";
 
 describe("TypedSQL", () => {
@@ -8,9 +7,9 @@ describe("TypedSQL", () => {
     id: number;
     name: string;
   }
-  const userTable = table<User>("users", {
-    id: column({ type: ColumnType.Number }),
-    name: column({ type: ColumnType.String })
+  const userTable = createTable<User>("users", {
+    id: { type: ColumnType.Number },
+    name: { type: ColumnType.String }
   });
 
   const pool = createPool({

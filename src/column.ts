@@ -100,11 +100,3 @@ export class NumberColumnImpl extends BaseColumnImpl<number>
   public readonly gte = (number: number) =>
     this.comparisonExpression(ColumnOp.GreaterThanOrEqual, number);
 }
-
-/**
- * Creates a column instance
- * @param config
- */
-export const column = <T extends TableAttribute>(
-  config: ColumnConfig<T>
-): ColumnConfig<T> => config;

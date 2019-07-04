@@ -1,4 +1,4 @@
-import { column, StringColumnImpl, NumberColumnImpl } from "./column";
+import { StringColumnImpl, NumberColumnImpl } from "./column";
 import { ColumnType } from "./types";
 
 expect.addSnapshotSerializer({
@@ -17,10 +17,7 @@ expect.addSnapshotSerializer({
 
 describe("NumberColumnImpl", () => {
   it("implements eqls", () => {
-    const c = new NumberColumnImpl(
-      column({ type: ColumnType.Number }),
-      {} as any
-    );
+    const c = new NumberColumnImpl({ type: ColumnType.Number }, {} as any);
     expect(c.eqls(2)).toMatchInlineSnapshot(`
 Object {
   "and": [Function],
@@ -192,17 +189,14 @@ Object {
   });
 
   it("implements isNull", () => {
-    const c = new NumberColumnImpl(
-      column<number>({ type: ColumnType.String }),
-      {} as any
-    );
+    const c = new NumberColumnImpl({ type: ColumnType.Number }, {} as any);
     expect(c.isNull()).toMatchInlineSnapshot(`
 Object {
   "and": [Function],
   "column": NumberColumnImpl {
     "comparisonExpression": [Function],
     "config": Object {
-      "type": 0,
+      "type": 1,
     },
     "eqls": [Function],
     "gt": [Function],
@@ -226,7 +220,7 @@ Object {
     "column": NumberColumnImpl {
       "comparisonExpression": [Function],
       "config": Object {
-        "type": 0,
+        "type": 1,
       },
       "eqls": [Function],
       "gt": [Function],
@@ -252,7 +246,7 @@ Object {
   "column": NumberColumnImpl {
     "comparisonExpression": [Function],
     "config": Object {
-      "type": 0,
+      "type": 1,
     },
     "eqls": [Function],
     "gt": [Function],
@@ -266,7 +260,7 @@ Object {
     "column": NumberColumnImpl {
       "comparisonExpression": [Function],
       "config": Object {
-        "type": 0,
+        "type": 1,
       },
       "eqls": [Function],
       "gt": [Function],
@@ -287,7 +281,7 @@ Object {
     "column": NumberColumnImpl {
       "comparisonExpression": [Function],
       "config": Object {
-        "type": 0,
+        "type": 1,
       },
       "eqls": [Function],
       "gt": [Function],
@@ -311,7 +305,7 @@ Object {
   "column": NumberColumnImpl {
     "comparisonExpression": [Function],
     "config": Object {
-      "type": 0,
+      "type": 1,
     },
     "eqls": [Function],
     "gt": [Function],
@@ -325,7 +319,7 @@ Object {
     "column": NumberColumnImpl {
       "comparisonExpression": [Function],
       "config": Object {
-        "type": 0,
+        "type": 1,
       },
       "eqls": [Function],
       "gt": [Function],
@@ -346,7 +340,7 @@ Object {
     "column": NumberColumnImpl {
       "comparisonExpression": [Function],
       "config": Object {
-        "type": 0,
+        "type": 1,
       },
       "eqls": [Function],
       "gt": [Function],
@@ -367,17 +361,14 @@ Object {
   });
 
   it("implements greaterThan", () => {
-    const c = new NumberColumnImpl(
-      column<number>({ type: ColumnType.String }),
-      {} as any
-    );
+    const c = new NumberColumnImpl({ type: ColumnType.Number }, {} as any);
     expect(c.gt(2)).toMatchInlineSnapshot(`
 Object {
   "and": [Function],
   "column": NumberColumnImpl {
     "comparisonExpression": [Function],
     "config": Object {
-      "type": 0,
+      "type": 1,
     },
     "eqls": [Function],
     "gt": [Function],
@@ -398,10 +389,7 @@ Object {
 
 describe("StringColumn", () => {
   it("implements like", () => {
-    const c = new StringColumnImpl(
-      column({ type: ColumnType.String }),
-      {} as any
-    );
+    const c = new StringColumnImpl({ type: ColumnType.String }, {} as any);
 
     expect(c.like("Josh%")).toMatchInlineSnapshot(`
 Object {

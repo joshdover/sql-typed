@@ -1,5 +1,4 @@
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 import { TableAttributes, ColumnType, Expression } from "./types";
 
 describe("query compilation", () => {
@@ -7,9 +6,9 @@ describe("query compilation", () => {
     id: number;
     name: string;
   }
-  const t = table<User>("users", {
-    id: column({ type: ColumnType.Number }),
-    name: column({ type: ColumnType.String })
+  const t = createTable<User>("users", {
+    id: { type: ColumnType.Number },
+    name: { type: ColumnType.String }
   });
 
   const expectCompiledQuery = (expression?: Expression) =>

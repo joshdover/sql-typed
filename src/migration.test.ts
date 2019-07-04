@@ -1,5 +1,4 @@
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 import { TableAttributes, ColumnType, primaryKey } from "./types";
 
 describe("migration compilation", () => {
@@ -10,12 +9,12 @@ describe("migration compilation", () => {
     nickname: string | null;
     age: number;
   }
-  const t = table<User>("users", {
-    id: column({ type: ColumnType.PrimaryKey }),
-    firstName: column({ type: ColumnType.String }),
-    lastName: column({ type: ColumnType.String, databaseType: "text" }),
-    nickname: column({ type: ColumnType.String, nullable: true }),
-    age: column({ type: ColumnType.Number, options: "DEFAULT 0" })
+  const t = createTable<User>("users", {
+    id: { type: ColumnType.PrimaryKey },
+    firstName: { type: ColumnType.String },
+    lastName: { type: ColumnType.String, databaseType: "text" },
+    nickname: { type: ColumnType.String, nullable: true },
+    age: { type: ColumnType.Number, options: "DEFAULT 0" }
   });
 
   it("compiles a create", () => {

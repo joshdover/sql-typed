@@ -16,16 +16,16 @@ npm install sql-typed
 ## Basic Example
 
 ```typescript
-import { createPool, table, column, TableAttributes, ColumnType } from 'sql-typed';
+import { createPool, createTable, TableAttributes, ColumnType } from 'sql-typed';
 
 interface User extends TableAttributes {
   id: number;
   name: string;
 }
-const userTable = table<User>("users", {
-  id: column({ type: ColumnType.Number }),
-  name: column({ type: ColumnType.String }),
-  age: column({ type: ColumnType.Number })
+const userTable = createTable<User>("users", {
+  id: { type: ColumnType.Number },
+  name: { type: ColumnType.String },
+  age: { type: ColumnType.Number }
 });
 
 const pool = createPool({

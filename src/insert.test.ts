@@ -1,5 +1,4 @@
-import { table } from "./table";
-import { column } from "./column";
+import { createTable } from "./table";
 import { TableAttributes, ColumnType, primaryKey } from "./types";
 
 describe("insert compilation", () => {
@@ -8,10 +7,10 @@ describe("insert compilation", () => {
     name: string;
     nickname: string | null;
   }
-  const t = table<User>("users", {
-    id: column({ type: ColumnType.PrimaryKey }),
-    name: column({ type: ColumnType.String }),
-    nickname: column({ type: ColumnType.String, nullable: true })
+  const t = createTable<User>("users", {
+    id: { type: ColumnType.PrimaryKey },
+    name: { type: ColumnType.String },
+    nickname: { type: ColumnType.String, nullable: true }
   });
 
   it("allows not defining primary keys", () => {
