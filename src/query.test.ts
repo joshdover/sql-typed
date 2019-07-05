@@ -1,5 +1,5 @@
 import { createTable } from "./table";
-import { TableAttributes, ColumnType, Expression } from "./types";
+import { TableAttributes, ColumnType, Expression, Columns } from "./types";
 
 describe("query compilation", () => {
   interface User extends TableAttributes {
@@ -11,7 +11,7 @@ describe("query compilation", () => {
     name: { type: ColumnType.String }
   });
 
-  const expectCompiledQuery = (expression?: Expression) =>
+  const expectCompiledQuery = (expression?: Expression | ((columns: Columns<User>) => Expression)) =>
     expect(
       t
         .select()
@@ -38,6 +38,18 @@ Object {
 
   it("compiles an and query", () =>
     expectCompiledQuery(t.columns.name.eqls("Josh").and(t.columns.id.eqls(4)))
+      .toMatchInlineSnapshot(`
+Object {
+  "text": "SELECT * FROM users WHERE (name = $1) AND (id = $2)",
+  "values": Array [
+    "Josh",
+    4,
+  ],
+}
+`));
+
+  it("compiles an and query with callback", () =>
+    expectCompiledQuery(({ name, id }) => name.eqls("Josh").and(id.eqls(4)))
       .toMatchInlineSnapshot(`
 Object {
   "text": "SELECT * FROM users WHERE (name = $1) AND (id = $2)",

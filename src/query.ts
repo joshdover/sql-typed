@@ -15,10 +15,15 @@ export class QueryImpl<T extends TableAttributes, C extends Columns<T>>
     private readonly expressions: Readonly<Array<Expression>> = []
   ) {}
 
-  public where(condition?: Expression) {
-    return condition === undefined
-      ? this
-      : new QueryImpl<T, C>(this.columns, [...this.expressions, condition]);
+  public where(condition?: Expression | ((columns: Columns<T>) => Expression)) {
+    if (condition === undefined) {
+      return this;
+    } else if (typeof condition === 'function') {
+      const resolvedCondition = condition(this.columns);
+      return new QueryImpl<T, C>(this.columns, [...this.expressions, resolvedCondition]);
+    } else {
+      return new QueryImpl<T, C>(this.columns, [...this.expressions, condition]);
+    }
   }
 
   public async count(transaction: Transaction) {

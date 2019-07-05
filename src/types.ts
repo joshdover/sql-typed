@@ -164,7 +164,7 @@ export type CompiledQuery = QueryConfig;
 
 export interface Query<T extends TableAttributes, C extends Columns<T>>
   extends ExecutableQuery<T[]> {
-  where(condition?: Expression): Query<T, C>;
+  where(condition?: Expression | ((columns: Columns<T>) => Expression)): Query<T, C>;
   count(transaction: Transaction): Promise<number>;
   groupBy: GroupByFunc;
 }
