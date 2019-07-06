@@ -25,20 +25,20 @@ export type primaryKey = number;
 export type TableAttribute = string | number | primaryKey | null;
 export type TableAttributes = { [columnName: string]: TableAttribute };
 
-export interface Expression {
-  and(condition: Expression): ComposedExpression;
-  or(condition: Expression): ComposedExpression;
+export interface BooleanExpression {
+  and(expression: BooleanExpression): OperatorExpression;
+  or(expression: BooleanExpression): OperatorExpression;
   not: NotExpression;
 }
 
-export interface NotExpression extends Expression {
+export interface NotExpression extends BooleanExpression {
   isNot: boolean;
-  expression: Expression;
+  expression: BooleanExpression;
 }
 
-export interface ComposedExpression extends Expression {
-  left: Expression;
-  right: Expression;
+export interface OperatorExpression extends BooleanExpression {
+  left: BooleanExpression;
+  right: BooleanExpression;
   op: ComposedOp;
 }
 
@@ -57,7 +57,7 @@ export enum ColumnOp {
   LessThanOrEqual
 }
 
-export interface ColumnExpression<T extends TableAttribute> extends Expression {
+export interface ColumnExpression<T extends TableAttribute> extends BooleanExpression {
   column: Column<T>;
   op: ColumnOp;
 }
@@ -132,8 +132,8 @@ export interface Table<T extends TableAttributes> {
 }
 
 interface SelectFunc<T extends TableAttributes> {
-  (): Query<T, Columns<T>>;
-  <C extends TableAttributes>(columns: Columns<C>): Query<C, Columns<C>>;
+  (): TableQuery<T>;
+  <C extends TableAttributes>(columns: Columns<C>): TableQuery<C>;
 }
 
 type NonPrimaryKeys<T extends TableAttributes> = {
@@ -146,7 +146,7 @@ export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<
 
 export interface Insert<T extends TableAttributes> {
   values(objs: Array<T | WithoutPrimaryKeys<T>>): InsertValues<T>;
-  from(query: Query<T, Columns<T>>): InsertFromQuery<T>;
+  from(query: TableQuery<T>): InsertFromQuery<T>;
 }
 
 export type InsertValues<T extends TableAttributes> = ExecutableQuery<T[]>;
@@ -157,16 +157,15 @@ export interface Update<T extends TableAttributes>
   extends ExecutableQuery<T[]> {
   // TODO: support expressions in addition to static values.
   set<C extends keyof T>(valuesOrColumn: ColumnsValues<T>): Update<T>;
-  where(expression: Expression): Update<T>;
+  where(expression: BooleanExpression): Update<T>;
 }
 
 export type CompiledQuery = QueryConfig;
 
-export interface Query<T extends TableAttributes, C extends Columns<T>>
+export interface TableQuery<T extends TableAttributes>
   extends ExecutableQuery<T[]> {
-  where(condition?: Expression | ((columns: Columns<T>) => Expression)): Query<T, C>;
+  where(predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)): TableQuery<T>;
   count(transaction: Transaction): Promise<number>;
-  groupBy: GroupByFunc;
 }
 
 export interface ExecutableQuery<T> {
@@ -184,9 +183,4 @@ export type Migration = ExecutableQuery<void>;
 export interface MigrationFactory {
   create(): Migration;
   update(currentSchema: TableDefinition): Migration;
-}
-
-interface GroupByFunc {
-  // TODO: what's the return type??
-  <C extends TableAttributes>(columns: Columns<C>): Query<any, any>;
 }

@@ -1,38 +1,34 @@
 import {
   TableAttributes,
-  Expression,
+  BooleanExpression,
   Transaction,
-  Query,
+  TableQuery,
   CompiledQuery,
   Columns
 } from "./types";
 import { compileExpressions } from "./expression_compiler";
 
-export class QueryImpl<T extends TableAttributes, C extends Columns<T>>
-  implements Query<T, C> {
+export class QueryImpl<T extends TableAttributes>
+  implements TableQuery<T> {
   constructor(
     private readonly columns: Columns<T>,
-    private readonly expressions: Readonly<Array<Expression>> = []
+    private readonly predicates: Readonly<Array<BooleanExpression>> = []
   ) {}
 
-  public where(condition?: Expression | ((columns: Columns<T>) => Expression)) {
-    if (condition === undefined) {
+  public where(predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)) {
+    if (predicate === undefined) {
       return this;
-    } else if (typeof condition === 'function') {
-      const resolvedCondition = condition(this.columns);
-      return new QueryImpl<T, C>(this.columns, [...this.expressions, resolvedCondition]);
+    } else if (typeof predicate === 'function') {
+      const resolvedPredicate = predicate(this.columns);
+      return new QueryImpl<T>(this.columns, [...this.predicates, resolvedPredicate]);
     } else {
-      return new QueryImpl<T, C>(this.columns, [...this.expressions, condition]);
+      return new QueryImpl<T>(this.columns, [...this.predicates, predicate]);
     }
   }
 
   public async count(transaction: Transaction) {
     // TODO: compile query string and params
     return 0;
-  }
-
-  public groupBy<X extends TableAttributes>(columns: Columns<X>) {
-    return new QueryImpl<T, C>(this.columns, [...this.expressions]);
   }
 
   public async execute(transaction: Transaction) {
@@ -47,7 +43,7 @@ export class QueryImpl<T extends TableAttributes, C extends Columns<T>>
     )[0];
     let text = `SELECT * FROM ${tableName}`;
 
-    // Compile where conditions
+    // Compile where predicates
     const { where, values } = this.compileWhere();
     text += where;
 
@@ -58,10 +54,10 @@ export class QueryImpl<T extends TableAttributes, C extends Columns<T>>
   }
 
   private compileWhere() {
-    if (this.expressions.length) {
+    if (this.predicates.length) {
       const { expression, values } = compileExpressions(
         this.columns,
-        this.expressions
+        this.predicates
       );
       return {
         where: ` WHERE ${expression}`,

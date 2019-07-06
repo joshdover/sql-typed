@@ -2,19 +2,19 @@ import {
   TableAttribute,
   Column,
   ColumnConfig,
-  Expression,
+  BooleanExpression,
   ComparisonExpression,
   NotExpression,
   Table,
   ColumnOp,
-  ComposedExpression,
+  OperatorExpression,
   ColumnExpression,
   StringColumn,
   ComposedOp,
   NumberColumn
 } from "./types";
 
-const baseExpression = <T extends TableAttribute, U extends Expression>(
+const baseExpression = <T extends TableAttribute, U extends BooleanExpression>(
   x: Partial<U> = {}
 ): U => {
   const thisExp = { ...x } as U;
@@ -22,8 +22,8 @@ const baseExpression = <T extends TableAttribute, U extends Expression>(
   Object.defineProperties(thisExp, {
     and: {
       enumerable: true,
-      value(otherExp: Expression): ComposedExpression {
-        return baseExpression<T, ComposedExpression>({
+      value(otherExp: BooleanExpression): OperatorExpression {
+        return baseExpression<T, OperatorExpression>({
           ...x,
           op: ComposedOp.And,
           left: x,
@@ -33,8 +33,8 @@ const baseExpression = <T extends TableAttribute, U extends Expression>(
     },
     or: {
       enumerable: true,
-      value(otherExp: Expression): ComposedExpression {
-        return baseExpression<T, ComposedExpression>({
+      value(otherExp: BooleanExpression): OperatorExpression {
+        return baseExpression<T, OperatorExpression>({
           ...x,
           op: ComposedOp.Or,
           left: x,

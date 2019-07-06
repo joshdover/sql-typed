@@ -4,9 +4,8 @@ import {
   Table,
   InsertValues,
   TableAttributes,
-  Columns,
-  Query,
-  WithoutPrimaryKeys
+  TableQuery,
+  WithoutPrimaryKeys,
 } from "./types";
 import { addToValues } from "./values";
 
@@ -62,7 +61,7 @@ class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
 class InsertFromImpl<T extends TableAttributes> implements InsertFromImpl<T> {
   constructor(
     private readonly table: Table<T>,
-    private readonly query: Query<any, Columns<any>>
+    private readonly query: TableQuery<any>
   ) {}
 
   public readonly execute = async (transaction: Transaction) => {
@@ -85,6 +84,6 @@ export class InsertImpl<T extends TableAttributes> implements Insert<T> {
 
   public readonly values = (objs: Array<T | WithoutPrimaryKeys<T>>) =>
     new InsertValuesImpl(this.table, objs);
-  public readonly from = (query: Query<T, Columns<T>>) =>
+  public readonly from = (query: TableQuery<T>) =>
     new InsertFromImpl(this.table, query);
 }

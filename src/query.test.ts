@@ -1,5 +1,5 @@
 import { createTable } from "./table";
-import { TableAttributes, ColumnType, Expression, Columns } from "./types";
+import { TableAttributes, ColumnType, BooleanExpression, Columns } from "./types";
 
 describe("query compilation", () => {
   interface User extends TableAttributes {
@@ -11,7 +11,7 @@ describe("query compilation", () => {
     name: { type: ColumnType.String }
   });
 
-  const expectCompiledQuery = (expression?: Expression | ((columns: Columns<User>) => Expression)) =>
+  const expectCompiledQuery = (expression?: BooleanExpression | ((columns: Columns<User>) => BooleanExpression)) =>
     expect(
       t
         .select()
@@ -19,14 +19,14 @@ describe("query compilation", () => {
         .compile()
     );
 
-  it("compiles a condition-less query", () => {
+  it("compiles a predicate-less query", () => {
     expectCompiledQuery().toEqual({
       text: "SELECT * FROM users",
       values: []
     });
   });
 
-  it("compiles a single condition query", () =>
+  it("compiles a single predicate query", () =>
     expectCompiledQuery(t.columns.name.eqls("Josh")).toMatchInlineSnapshot(`
 Object {
   "text": "SELECT * FROM users WHERE name = $1",

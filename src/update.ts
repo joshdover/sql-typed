@@ -1,7 +1,7 @@
 import {
   TableAttributes,
   Update,
-  Expression,
+  BooleanExpression,
   ColumnsValues,
   Table,
   Transaction
@@ -12,7 +12,7 @@ import { compileExpressions } from "./expression_compiler";
 export class UpdateImpl<T extends TableAttributes> implements Update<T> {
   constructor(
     private readonly table: Table<T>,
-    private readonly expressions: Expression[] = [],
+    private readonly expressions: BooleanExpression[] = [],
     private readonly columnsToSet: ColumnsValues<T> = {}
   ) {}
 
@@ -23,7 +23,7 @@ export class UpdateImpl<T extends TableAttributes> implements Update<T> {
     });
   }
 
-  public readonly where = (expression?: Expression) => {
+  public readonly where = (expression?: BooleanExpression) => {
     return expression === undefined
       ? this
       : new UpdateImpl(

@@ -1,6 +1,6 @@
 import {
-  Expression,
-  ComposedExpression,
+  BooleanExpression,
+  OperatorExpression,
   TableAttribute,
   ColumnExpression,
   ComparisonExpression,
@@ -12,7 +12,7 @@ import {
 } from "./types";
 import { addToValues } from "./values";
 
-const joinExpressions = (expressions: Expression[]): Expression => {
+const joinExpressions = (expressions: BooleanExpression[]): BooleanExpression => {
   return expressions.reduce(
     (rootExp, nextExp) => rootExp.and(nextExp),
     expressions.pop()!.and(expressions.pop()!)
@@ -21,7 +21,7 @@ const joinExpressions = (expressions: Expression[]): Expression => {
 
 const buildExpression = (
   columns: Columns<any>,
-  expression: Expression,
+  expression: BooleanExpression,
   values: any[]
 ): [string, any[]] => {
   if (isComposedExpr(expression)) {
@@ -137,13 +137,13 @@ const getColumnName = (columns: Columns<any>, column: Column<any>): string => {
   throw new Error(`Column not found!`);
 };
 
-function isComposedExpr(expr: Expression): expr is ComposedExpression {
-  const compExp = expr as ComposedExpression;
+function isComposedExpr(expr: BooleanExpression): expr is OperatorExpression {
+  const compExp = expr as OperatorExpression;
   return Boolean(compExp.left && compExp.right && compExp.op !== undefined);
 }
 
 function isColumnExpression(
-  expr: Expression
+  expr: BooleanExpression
 ): expr is ColumnExpression<TableAttribute> {
   const colExp = expr as ColumnExpression<TableAttribute>;
   return Boolean(colExp.column && colExp.op !== undefined);
@@ -156,14 +156,14 @@ function isComparisonExpression(
   return Boolean(compExp.value !== undefined);
 }
 
-function isNotExpression(expr: Expression): expr is NotExpression {
+function isNotExpression(expr: BooleanExpression): expr is NotExpression {
   const notExp = expr as NotExpression;
   return Boolean(notExp.isNot && notExp.expression);
 }
 
 export const compileExpressions = (
   columns: Columns<any>,
-  expressions: ReadonlyArray<Expression>,
+  expressions: ReadonlyArray<BooleanExpression>,
   values: any[] = []
 ): { expression: string; values: any[] } => {
   const internalExpressions = [...expressions];
