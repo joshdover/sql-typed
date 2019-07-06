@@ -87,7 +87,7 @@ class TableImpl<T extends TableAttributes> implements Table<T> {
   }
 
   public select = (selectColumns?: Columns<any>) =>
-    new QueryImpl<T, Columns<T>>(selectColumns || this.columns);
+    new QueryImpl<T>(selectColumns || this.columns);
   public insert = (): Insert<T> => new InsertImpl<T>(this);
   public update = (): Update<T> => new UpdateImpl<T>(this);
   public migrate = (): MigrationFactory => new MigrationFactoryImpl<T>(this);

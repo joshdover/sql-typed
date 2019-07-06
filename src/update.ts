@@ -60,9 +60,7 @@ export class UpdateImpl<T extends TableAttributes> implements Update<T> {
     }
 
     return {
-      text: `UPDATE ${
-        this.table.tableName
-      } SET ${setClauses} ${whereClause} RETURNING *`,
+      text: `UPDATE ${this.table.tableName} SET ${setClauses} ${whereClause} RETURNING *`,
       values
     };
   };

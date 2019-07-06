@@ -12,9 +12,12 @@ import {
 } from "./types";
 import { addToValues } from "./values";
 
-const joinExpressions = (expressions: BooleanExpression[]): BooleanExpression => {
+const joinExpressions = (
+  expressions: BooleanExpression[]
+): BooleanExpression => {
   return expressions.reduce(
     (rootExp, nextExp) => rootExp.and(nextExp),
+    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     expressions.pop()!.and(expressions.pop()!)
   );
 };

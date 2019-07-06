@@ -8,19 +8,23 @@ import {
 } from "./types";
 import { compileExpressions } from "./expression_compiler";
 
-export class QueryImpl<T extends TableAttributes>
-  implements TableQuery<T> {
+export class QueryImpl<T extends TableAttributes> implements TableQuery<T> {
   constructor(
     private readonly columns: Columns<T>,
-    private readonly predicates: Readonly<Array<BooleanExpression>> = []
+    private readonly predicates: Readonly<BooleanExpression[]> = []
   ) {}
 
-  public where(predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)) {
+  public where(
+    predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)
+  ) {
     if (predicate === undefined) {
       return this;
-    } else if (typeof predicate === 'function') {
+    } else if (typeof predicate === "function") {
       const resolvedPredicate = predicate(this.columns);
-      return new QueryImpl<T>(this.columns, [...this.predicates, resolvedPredicate]);
+      return new QueryImpl<T>(this.columns, [
+        ...this.predicates,
+        resolvedPredicate
+      ]);
     } else {
       return new QueryImpl<T>(this.columns, [...this.predicates, predicate]);
     }

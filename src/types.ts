@@ -23,7 +23,9 @@ export interface Transaction {
 
 export type primaryKey = number;
 export type TableAttribute = string | number | primaryKey | null;
-export type TableAttributes = { [columnName: string]: TableAttribute };
+export interface TableAttributes {
+  [columnName: string]: TableAttribute;
+}
 
 export interface BooleanExpression {
   and(expression: BooleanExpression): OperatorExpression;
@@ -57,7 +59,8 @@ export enum ColumnOp {
   LessThanOrEqual
 }
 
-export interface ColumnExpression<T extends TableAttribute> extends BooleanExpression {
+export interface ColumnExpression<T extends TableAttribute>
+  extends BooleanExpression {
   column: Column<T>;
   op: ColumnOp;
 }
@@ -81,7 +84,7 @@ export interface ColumnConfig<T extends TableAttribute> {
 }
 
 export type ColumnConfigs<T extends TableAttributes> = {
-  [P in keyof T]: ColumnConfig<T[P]>
+  [P in keyof T]: ColumnConfig<T[P]>;
 };
 
 export interface Column<T extends TableAttribute> {
@@ -113,11 +116,11 @@ type TypedColumn<T extends TableAttribute> = T extends string
   : Column<T>;
 
 export type Columns<T extends TableAttributes> = {
-  readonly [P in keyof T]: TypedColumn<T[P]>
+  readonly [P in keyof T]: TypedColumn<T[P]>;
 };
 
 export type ColumnsValues<T extends TableAttributes> = {
-  readonly [P in keyof T]?: T[P]
+  readonly [P in keyof T]?: T[P];
 };
 
 export interface Table<T extends TableAttributes> {
@@ -137,7 +140,7 @@ interface SelectFunc<T extends TableAttributes> {
 }
 
 type NonPrimaryKeys<T extends TableAttributes> = {
-  [P in keyof T]: T[P] extends primaryKey ? never : P
+  [P in keyof T]: T[P] extends primaryKey ? never : P;
 }[keyof T];
 export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<
   T,
@@ -145,7 +148,7 @@ export type WithoutPrimaryKeys<T extends TableAttributes> = Pick<
 >;
 
 export interface Insert<T extends TableAttributes> {
-  values(objs: Array<T | WithoutPrimaryKeys<T>>): InsertValues<T>;
+  values(objs: (T | WithoutPrimaryKeys<T>)[]): InsertValues<T>;
   from(query: TableQuery<T>): InsertFromQuery<T>;
 }
 
@@ -164,7 +167,9 @@ export type CompiledQuery = QueryConfig;
 
 export interface TableQuery<T extends TableAttributes>
   extends ExecutableQuery<T[]> {
-  where(predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)): TableQuery<T>;
+  where(
+    predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)
+  ): TableQuery<T>;
   count(transaction: Transaction): Promise<number>;
 }
 
@@ -176,7 +181,7 @@ export interface ExecutableQuery<T> {
 // select column_name, data_type, character_maximum_length
 // from INFORMATION_SCHEMA.COLUMNS where table_name = '<name of table>';
 
-export type TableDefinition = Array<{ columnName: string; dataType: string }>;
+export type TableDefinition = { columnName: string; dataType: string }[];
 
 export type Migration = ExecutableQuery<void>;
 

@@ -17,7 +17,7 @@ import {
 const baseExpression = <T extends TableAttribute, U extends BooleanExpression>(
   x: Partial<U> = {}
 ): U => {
-  const thisExp = { ...x } as U;
+  const thisExp: U = { ...x } as any;
 
   Object.defineProperties(thisExp, {
     and: {
@@ -79,7 +79,7 @@ class BaseColumnImpl<T extends TableAttribute> implements Column<T> {
       column: this,
       op,
       value
-    } as Partial<ComparisonExpression<T>>);
+    });
   };
 }
 

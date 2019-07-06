@@ -1,5 +1,10 @@
 import { createTable } from "./table";
-import { TableAttributes, ColumnType, BooleanExpression, Columns } from "./types";
+import {
+  TableAttributes,
+  ColumnType,
+  BooleanExpression,
+  Columns
+} from "./types";
 
 describe("query compilation", () => {
   interface User extends TableAttributes {
@@ -11,7 +16,11 @@ describe("query compilation", () => {
     name: { type: ColumnType.String }
   });
 
-  const expectCompiledQuery = (expression?: BooleanExpression | ((columns: Columns<User>) => BooleanExpression)) =>
+  const expectCompiledQuery = (
+    expression?:
+      | BooleanExpression
+      | ((columns: Columns<User>) => BooleanExpression)
+  ) =>
     expect(
       t
         .select()

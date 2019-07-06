@@ -5,18 +5,18 @@ import {
   InsertValues,
   TableAttributes,
   TableQuery,
-  WithoutPrimaryKeys,
+  WithoutPrimaryKeys
 } from "./types";
 import { addToValues } from "./values";
 
-function flatten(arr: Array<Array<any>>): Array<any> {
+function flatten(arr: any[][]): any[] {
   return arr.reduce((acc, item) => acc.concat(item), []);
 }
 
 class InsertValuesImpl<T extends TableAttributes> implements InsertValues<T> {
   constructor(
     private readonly table: Table<T>,
-    private readonly objs: Array<T | WithoutPrimaryKeys<T>>
+    private readonly objs: (T | WithoutPrimaryKeys<T>)[]
   ) {}
 
   public readonly execute = async (transaction: Transaction) => {
@@ -82,7 +82,7 @@ class InsertFromImpl<T extends TableAttributes> implements InsertFromImpl<T> {
 export class InsertImpl<T extends TableAttributes> implements Insert<T> {
   constructor(private readonly table: Table<T>) {}
 
-  public readonly values = (objs: Array<T | WithoutPrimaryKeys<T>>) =>
+  public readonly values = (objs: (T | WithoutPrimaryKeys<T>)[]) =>
     new InsertValuesImpl(this.table, objs);
   public readonly from = (query: TableQuery<T>) =>
     new InsertFromImpl(this.table, query);
