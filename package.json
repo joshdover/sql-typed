@@ -8,7 +8,7 @@
     "test": "jest && npm run lint && npm run typecheck",
     "lint": "eslint src/*.ts",
     "typecheck": "tsc --noEmit",
-    "prepublish": "npm test && npm run build",
+    "prepare": "npm test && npm run build",
     "build": "tsc"
   },
   "repository": {
@@ -16,7 +16,7 @@
     "url": "github.com/joshdover/sql-typed"
   },
   "author": "Josh Dover",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "dedent": "^0.7.0",
     "pg": "^7.8.0"
@@ -27,7 +27,8 @@
     "@types/pg": "^7.4.13",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
-    "eslint": "^6.0.1",
+    "acorn": "^6.2.0",
+    "eslint": "^5.16.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.1.0",
     "jest": "^24.3.1",
