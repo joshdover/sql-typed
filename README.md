@@ -1,5 +1,7 @@
 # SQLTyped
 
+[![CircleCI](https://circleci.com/gh/joshdover/sql-typed.svg?style=svg)](https://circleci.com/gh/joshdover/sql-typed)
+
 SQLTyped is a simple, typesafe SQL DSL implementation in TypeScript that aims to provide a natural
 SQL interface for TypeScript applications. Goals of SQLTyped:
 - **No magic.** SQLTyped is not an ORM, you need to know SQL to use SQLTyped.
