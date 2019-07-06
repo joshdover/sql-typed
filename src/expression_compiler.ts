@@ -133,7 +133,7 @@ const getColumnName = (columns: Columns<any>, column: Column<any>): string => {
   // TODO: add reverse index to speed this up
   for (const columnName in columns) {
     if (columns[columnName] === column) {
-      return columnName;
+      return `"${column.table.tableName}"."${columnName}"`;
     }
   }
 

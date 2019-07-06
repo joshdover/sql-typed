@@ -62,7 +62,10 @@ export class TableQueryImpl<T extends TableAttributes>
   }
 
   public compile(): CompiledQuery {
-    let text = `SELECT * FROM ${this.table.tableName}`;
+    const columns = Object.keys(this.table.columns)
+      .map(columnName => `"${this.table.tableName}"."${columnName}"`)
+      .join(", ");
+    let text = `SELECT ${columns} FROM ${this.table.tableName}`;
 
     // Compile where predicates
     const { where, values } = this.compileWhere();

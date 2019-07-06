@@ -54,7 +54,7 @@ Object {
         .compile()
     ).toMatchInlineSnapshot(`
 Object {
-  "text": "UPDATE users SET name = $1 WHERE id = $2 RETURNING *",
+  "text": "UPDATE users SET name = $1 WHERE \\"users\\".\\"id\\" = $2 RETURNING *",
   "values": Array [
     "Mia ",
     1,
