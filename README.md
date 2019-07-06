@@ -1,7 +1,5 @@
 # SQLTyped
 
-This repo is a work in progress.
-
 SQLTyped is a simple, typesafe SQL DSL implementation in TypeScript that aims to provide a natural
 SQL interface for TypeScript applications. Goals of SQLTyped:
 - **No magic.** SQLTyped is not an ORM, you need to know SQL to use SQLTyped.
@@ -13,6 +11,8 @@ SQL interface for TypeScript applications. Goals of SQLTyped:
 npm install sql-typed
 ```
 
+SQLTyped is in active development and the API is not guaranteed to be stable.
+
 ## Basic Example
 
 ```typescript
@@ -22,10 +22,12 @@ interface User extends TableAttributes {
   id: number;
   name: string;
 }
+
+// Type safe columns are created from the table definition.
 const userTable = createTable<User>("users", {
-  id: { type: ColumnType.Number },
+  id: { type: ColumnType.PrimaryKey },
   name: { type: ColumnType.String },
-  age: { type: ColumnType.Number }
+  age: { type: ColumnType.Number, nullable: true }
 });
 
 const pool = createPool({
@@ -37,9 +39,9 @@ const pool = createPool({
 
 pool.transaction(async transaction => {
   // Create a user
-  const insertedUser = await userTable
+  const [insertedUser] = await userTable
     .insert()
-    .values([{ id: 1, name: 'Josh' }])
+    .values([{ name: 'Josh' }])
     .execute(transaction);
 
   // Simple query
@@ -51,7 +53,7 @@ pool.transaction(async transaction => {
   // Complex queries
   const millennialsNamedMia = await userTable
     .select()
-    // Use `where` calls or `and` chaining for conjunction logic
+    // Multiple `where` is equivalent to `and` chaining for conjunction logic
     .where(
       userTable.columns.name.like('Mia%')
     ).where(
@@ -59,14 +61,21 @@ pool.transaction(async transaction => {
     ).execute(
       transaction
     );
+
+  // Count queries
+  const countOver50 = await userTable
+    // `where` also accepts a function to build predicates
+    .where(({ age }) => age.gte(50))
+    .count()
+    .execute(transaction);
 });
 ```
 
 ## Developing
 
-To run integration tests:
+To run tests:
 
 ```
-docker run --rm -p 5432:5432 postgres
-jest
+docker run --rm -d -p 5432:5432 postgres
+npm test
 ```
