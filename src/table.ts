@@ -15,9 +15,10 @@ import {
   TableDefinition,
   Insert,
   Update,
-  MigrationFactory
+  MigrationFactory,
+  TableQuery
 } from "./types";
-import { QueryImpl } from "./query";
+import { TableQueryImpl } from "./query";
 import { StringColumnImpl, NumberColumnImpl } from "./column";
 import { InsertImpl } from "./insert";
 import { UpdateImpl } from "./update";
@@ -86,8 +87,7 @@ class TableImpl<T extends TableAttributes> implements Table<T> {
     );
   }
 
-  public select = (selectColumns?: Columns<any>) =>
-    new QueryImpl<T>(selectColumns || this.columns);
+  public select = (): TableQuery<T> => new TableQueryImpl<T>(this);
   public insert = (): Insert<T> => new InsertImpl<T>(this);
   public update = (): Update<T> => new UpdateImpl<T>(this);
   public migrate = (): MigrationFactory => new MigrationFactoryImpl<T>(this);

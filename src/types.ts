@@ -170,7 +170,7 @@ export interface TableQuery<T extends TableAttributes>
   where(
     predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)
   ): TableQuery<T>;
-  count(transaction: Transaction): Promise<number>;
+  count(): ExecutableQuery<number>;
 }
 
 export interface ExecutableQuery<T> {

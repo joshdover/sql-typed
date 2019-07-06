@@ -116,4 +116,21 @@ describe("TypedSQL", () => {
       expect(queriedUser).toEqual({ id: 1, name: "Dover" });
     })
   );
+
+  it(
+    "can count data",
+    withTransaction(async transaction => {
+      await userTable
+        .insert()
+        .values([{ name: "John" }, { name: "Sarah" }])
+        .execute(transaction);
+
+      const count = await userTable
+        .select()
+        .where(({ name }) => name.eqls("John"))
+        .count()
+        .execute(transaction);
+      expect(count).toEqual(1);
+    })
+  );
 });

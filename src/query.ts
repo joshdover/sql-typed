@@ -4,13 +4,15 @@ import {
   Transaction,
   TableQuery,
   CompiledQuery,
-  Columns
+  Columns,
+  Table
 } from "./types";
 import { compileExpressions } from "./expression_compiler";
 
-export class QueryImpl<T extends TableAttributes> implements TableQuery<T> {
+export class TableQueryImpl<T extends TableAttributes>
+  implements TableQuery<T> {
   constructor(
-    private readonly columns: Columns<T>,
+    private readonly table: Table<T>,
     private readonly predicates: Readonly<BooleanExpression[]> = []
   ) {}
 
@@ -20,19 +22,38 @@ export class QueryImpl<T extends TableAttributes> implements TableQuery<T> {
     if (predicate === undefined) {
       return this;
     } else if (typeof predicate === "function") {
-      const resolvedPredicate = predicate(this.columns);
-      return new QueryImpl<T>(this.columns, [
+      const resolvedPredicate = predicate(this.table.columns);
+      return new TableQueryImpl<T>(this.table, [
         ...this.predicates,
         resolvedPredicate
       ]);
     } else {
-      return new QueryImpl<T>(this.columns, [...this.predicates, predicate]);
+      return new TableQueryImpl<T>(this.table, [...this.predicates, predicate]);
     }
   }
 
-  public async count(transaction: Transaction) {
-    // TODO: compile query string and params
-    return 0;
+  public count() {
+    const baseQuery = this;
+
+    return {
+      compile() {
+        let text = `SELECT count(*) FROM ${baseQuery.table.tableName}`;
+
+        // Compile where predicates
+        const { where, values } = baseQuery.compileWhere();
+        text += where;
+
+        return {
+          text,
+          values
+        };
+      },
+
+      async execute(transaction: Transaction) {
+        const { rows } = await transaction.query(this.compile());
+        return parseInt(rows[0].count, 10) as number;
+      }
+    };
   }
 
   public async execute(transaction: Transaction) {
@@ -41,11 +62,7 @@ export class QueryImpl<T extends TableAttributes> implements TableQuery<T> {
   }
 
   public compile(): CompiledQuery {
-    // TODO support joins / multiple tables
-    const tableName = Object.getOwnPropertyNames(this.columns).map(
-      col => this.columns[col].table.tableName
-    )[0];
-    let text = `SELECT * FROM ${tableName}`;
+    let text = `SELECT * FROM ${this.table.tableName}`;
 
     // Compile where predicates
     const { where, values } = this.compileWhere();
@@ -60,7 +77,7 @@ export class QueryImpl<T extends TableAttributes> implements TableQuery<T> {
   private compileWhere() {
     if (this.predicates.length) {
       const { expression, values } = compileExpressions(
-        this.columns,
+        this.table.columns,
         this.predicates
       );
       return {

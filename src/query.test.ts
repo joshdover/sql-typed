@@ -28,6 +28,23 @@ describe("query compilation", () => {
         .compile()
     );
 
+  it("compiles a count predicate query", () => {
+    expect(
+      t
+        .select()
+        .where(({ name }) => name.eqls("Josh"))
+        .count()
+        .compile()
+    ).toMatchInlineSnapshot(`
+Object {
+  "text": "SELECT count(*) FROM users WHERE name = $1",
+  "values": Array [
+    "Josh",
+  ],
+}
+`);
+  });
+
   it("compiles a predicate-less query", () => {
     expectCompiledQuery().toEqual({
       text: "SELECT * FROM users",
