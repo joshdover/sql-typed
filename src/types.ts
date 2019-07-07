@@ -89,20 +89,20 @@ export type ColumnConfigs<T extends TableAttributes> = {
 
 export interface Column<T extends TableAttribute> {
   config: ColumnConfig<T>;
-  eqls(value: T): ComparisonExpression<T>;
+  eqls(value: T | Column<T>): ComparisonExpression<T>;
   isNull(): ColumnExpression<T>;
   table: Table<any>;
 }
 
 export interface StringColumn extends Column<string> {
-  like(string: string): ComparisonExpression<string>;
+  like(string: string | Column<string>): ComparisonExpression<string>;
 }
 
 export interface NumberColumn extends Column<number> {
-  lt(number: number): ComparisonExpression<number>;
-  lte(number: number): ComparisonExpression<number>;
-  gt(number: number): ComparisonExpression<number>;
-  gte(number: number): ComparisonExpression<number>;
+  lt(number: number | Column<number>): ComparisonExpression<number>;
+  lte(number: number | Column<number>): ComparisonExpression<number>;
+  gt(number: number | Column<number>): ComparisonExpression<number>;
+  gte(number: number | Column<number>): ComparisonExpression<number>;
 }
 
 export type PrimaryKeyColumn = NumberColumn;
@@ -165,12 +165,34 @@ export interface Update<T extends TableAttributes>
 
 export type CompiledQuery = QueryConfig;
 
+export type Predicate<T> =
+  | BooleanExpression
+  | ((columns: T) => BooleanExpression);
+
 export interface TableQuery<T extends TableAttributes>
   extends ExecutableQuery<T[]> {
-  where(
-    predicate?: BooleanExpression | ((columns: Columns<T>) => BooleanExpression)
-  ): TableQuery<T>;
+  where(predicate?: Predicate<Columns<T>>): TableQuery<T>;
   count(): ExecutableQuery<number>;
+  join<TRight extends TableAttributes>(
+    table: Table<TRight>,
+    matchPredicate: Predicate<[Columns<T>, Columns<TRight>]>,
+    joinType?: JoinType
+  ): MultiTableQuery<T, TRight>;
+}
+
+export enum JoinType {
+  Inner = 0,
+  Left = 1
+}
+
+export interface MultiTableQuery<
+  TLeft extends TableAttributes,
+  TRight extends TableAttributes
+> extends ExecutableQuery<Array<[TLeft, TRight]>> {
+  count(): ExecutableQuery<number>;
+  where(
+    predicate?: Predicate<[Columns<TLeft>, Columns<TRight>]>
+  ): MultiTableQuery<TLeft, TRight>;
 }
 
 export interface ExecutableQuery<T> {

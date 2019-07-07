@@ -7,8 +7,7 @@ import {
   NotExpression,
   ComposedOp,
   ColumnOp,
-  Column,
-  Columns
+  Column
 } from "./types";
 import { addToValues } from "./values";
 
@@ -23,14 +22,13 @@ const joinExpressions = (
 };
 
 const buildExpression = (
-  columns: Columns<any>,
   expression: BooleanExpression,
   values: any[]
 ): [string, any[]] => {
   if (isComposedExpr(expression)) {
     let left: string, right: string;
-    [left, values] = buildExpression(columns, expression.left, values);
-    [right, values] = buildExpression(columns, expression.right, values);
+    [left, values] = buildExpression(expression.left, values);
+    [right, values] = buildExpression(expression.right, values);
     switch (expression.op) {
       case ComposedOp.And:
         return [`(${left}) AND (${right})`, values];
@@ -71,20 +69,26 @@ const buildExpression = (
           );
       }
 
-      const nextValues = addToValues(values, expression.value);
-      return [
-        `${getColumnName(columns, expression.column)} ${stringOp} ${
-          nextValues.valueIdx
-        }`,
-        nextValues.values
-      ];
+      if (isColumn(expression.value)) {
+        return [
+          `${getColumnName(expression.column)} ${stringOp} ${getColumnName(
+            expression.value
+          )}`,
+          values
+        ];
+      } else {
+        const nextValues = addToValues(values, expression.value);
+        return [
+          `${getColumnName(expression.column)} ${stringOp} ${
+            nextValues.valueIdx
+          }`,
+          nextValues.values
+        ];
+      }
     } else {
       switch (expression.op) {
         case ColumnOp.IsNull:
-          return [
-            `${getColumnName(columns, expression.column)} IS NULL`,
-            values
-          ];
+          return [`${getColumnName(expression.column)} IS NULL`, values];
         default:
           throw new Error(
             `Unknown operator for column expression: ${expression.op}`
@@ -100,7 +104,7 @@ const buildExpression = (
       expression.expression.op === ColumnOp.IsNull
     ) {
       return [
-        `${getColumnName(columns, expression.expression.column)} IS NOT NULL`,
+        `${getColumnName(expression.expression.column)} IS NOT NULL`,
         values
       ];
     } else if (
@@ -110,35 +114,41 @@ const buildExpression = (
     ) {
       const nextValues = addToValues(values, expression.expression.value);
       return [
-        `${getColumnName(columns, expression.expression.column)} NOT LIKE ${
+        `${getColumnName(expression.expression.column)} NOT LIKE ${
           nextValues.valueIdx
         }`,
         nextValues.values
       ];
     } else {
       let innerExp: string;
-      [innerExp, values] = buildExpression(
-        columns,
-        expression.expression,
-        values
-      );
+      [innerExp, values] = buildExpression(expression.expression, values);
       return [`!(${innerExp})`, values];
     }
   }
 
-  throw new Error(`Unrecognized expression: ${expression}`);
+  throw new Error(`Unrecognized expression: ${Object.keys(expression)}`);
 };
 
-const getColumnName = (columns: Columns<any>, column: Column<any>): string => {
+const getColumnName = (column: Column<any>): string => {
   // TODO: add reverse index to speed this up
-  for (const columnName in columns) {
-    if (columns[columnName] === column) {
-      return `"${column.table.tableName}"."${columnName}"`;
+  for (const columnName in column.table.columns) {
+    if (column.table.columns[columnName] === column) {
+      return `"${column.table.tableName}"."${columnName.toLowerCase()}"`;
     }
   }
 
   throw new Error(`Column not found!`);
 };
+
+function isColumn(value: any): value is Column<any> {
+  const col = value as Column<any>;
+  return Boolean(
+    col.config &&
+      col.table &&
+      typeof col.eqls === "function" &&
+      typeof col.isNull === "function"
+  );
+}
 
 function isComposedExpr(expr: BooleanExpression): expr is OperatorExpression {
   const compExp = expr as OperatorExpression;
@@ -165,7 +175,6 @@ function isNotExpression(expr: BooleanExpression): expr is NotExpression {
 }
 
 export const compileExpressions = (
-  columns: Columns<any>,
   expressions: ReadonlyArray<BooleanExpression>,
   values: any[] = []
 ): { expression: string; values: any[] } => {
@@ -176,10 +185,6 @@ export const compileExpressions = (
       ? joinExpressions(internalExpressions)
       : internalExpressions[0];
 
-  const [expression, nextValues] = buildExpression(
-    columns,
-    rootExpression,
-    values
-  );
+  const [expression, nextValues] = buildExpression(rootExpression, values);
   return { expression, values: nextValues };
 };

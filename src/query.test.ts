@@ -11,7 +11,7 @@ describe("query compilation", () => {
     id: number;
     name: string;
   }
-  const t = createTable<User>("users", {
+  const userTable = createTable<User>("users", {
     id: { type: ColumnType.Number },
     name: { type: ColumnType.String }
   });
@@ -22,7 +22,7 @@ describe("query compilation", () => {
       | ((columns: Columns<User>) => BooleanExpression)
   ) =>
     expect(
-      t
+      userTable
         .select()
         .where(expression)
         .compile()
@@ -30,7 +30,7 @@ describe("query compilation", () => {
 
   it("compiles a count predicate query", () => {
     expect(
-      t
+      userTable
         .select()
         .where(({ name }) => name.eqls("Josh"))
         .count()
@@ -48,16 +48,17 @@ Object {
   it("compiles a predicate-less query", () => {
     expectCompiledQuery().toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users",
   "values": Array [],
 }
 `);
   });
 
   it("compiles a single predicate query", () =>
-    expectCompiledQuery(t.columns.name.eqls("Josh")).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.name.eqls("Josh"))
+      .toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"name\\" = $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"name\\" = $1",
   "values": Array [
     "Josh",
   ],
@@ -65,10 +66,11 @@ Object {
 `));
 
   it("compiles an and query", () =>
-    expectCompiledQuery(t.columns.name.eqls("Josh").and(t.columns.id.eqls(4)))
-      .toMatchInlineSnapshot(`
+    expectCompiledQuery(
+      userTable.columns.name.eqls("Josh").and(userTable.columns.id.eqls(4))
+    ).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE (\\"users\\".\\"name\\" = $1) AND (\\"users\\".\\"id\\" = $2)",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE (\\"users\\".\\"name\\" = $1) AND (\\"users\\".\\"id\\" = $2)",
   "values": Array [
     "Josh",
     4,
@@ -80,7 +82,7 @@ Object {
     expectCompiledQuery(({ name, id }) => name.eqls("Josh").and(id.eqls(4)))
       .toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE (\\"users\\".\\"name\\" = $1) AND (\\"users\\".\\"id\\" = $2)",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE (\\"users\\".\\"name\\" = $1) AND (\\"users\\".\\"id\\" = $2)",
   "values": Array [
     "Josh",
     4,
@@ -89,17 +91,19 @@ Object {
 `));
 
   it("compiles is not null query", () =>
-    expectCompiledQuery(t.columns.name.isNull().not).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.name.isNull().not)
+      .toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"name\\" IS NOT NULL",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"name\\" IS NOT NULL",
   "values": Array [],
 }
 `));
 
   it("compiles a like query", () =>
-    expectCompiledQuery(t.columns.name.like("Josh%")).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.name.like("Josh%"))
+      .toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"name\\" LIKE $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"name\\" LIKE $1",
   "values": Array [
     "Josh%",
   ],
@@ -107,10 +111,10 @@ Object {
 `));
 
   it("compiles a not like query", () =>
-    expectCompiledQuery(t.columns.name.like("Josh%").not)
+    expectCompiledQuery(userTable.columns.name.like("Josh%").not)
       .toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"name\\" NOT LIKE $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"name\\" NOT LIKE $1",
   "values": Array [
     "Josh%",
   ],
@@ -118,9 +122,9 @@ Object {
 `));
 
   it("compiles > query", () =>
-    expectCompiledQuery(t.columns.id.gt(2)).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.id.gt(2)).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"id\\" > $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"id\\" > $1",
   "values": Array [
     2,
   ],
@@ -128,9 +132,9 @@ Object {
 `));
 
   it("compiles ! > query", () =>
-    expectCompiledQuery(t.columns.id.gt(2).not).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.id.gt(2).not).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE !(\\"users\\".\\"id\\" > $1)",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE !(\\"users\\".\\"id\\" > $1)",
   "values": Array [
     2,
   ],
@@ -138,9 +142,9 @@ Object {
 `));
 
   it("compiles >= query", () =>
-    expectCompiledQuery(t.columns.id.gte(2)).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.id.gte(2)).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"id\\" >= $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"id\\" >= $1",
   "values": Array [
     2,
   ],
@@ -148,9 +152,9 @@ Object {
 `));
 
   it("compiles < query", () =>
-    expectCompiledQuery(t.columns.id.lt(2)).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.id.lt(2)).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"id\\" < $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"id\\" < $1",
   "values": Array [
     2,
   ],
@@ -158,12 +162,41 @@ Object {
 `));
 
   it("compiles <= query", () =>
-    expectCompiledQuery(t.columns.id.lte(2)).toMatchInlineSnapshot(`
+    expectCompiledQuery(userTable.columns.id.lte(2)).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"users\\".\\"id\\", \\"users\\".\\"name\\" FROM users WHERE \\"users\\".\\"id\\" <= $1",
+  "text": "SELECT \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM users WHERE \\"users\\".\\"id\\" <= $1",
   "values": Array [
     2,
   ],
 }
 `));
+
+  describe("join queries", () => {
+    interface Article extends TableAttributes {
+      id: number;
+      title: string;
+      userId: number;
+    }
+    const articleTable = createTable<Article>("articles", {
+      id: { type: ColumnType.PrimaryKey },
+      userId: { type: ColumnType.Number },
+      title: { type: ColumnType.String }
+    });
+
+    it("compiles a basic join", () =>
+      expect(
+        articleTable
+          .select()
+          .join(
+            userTable,
+            articleTable.columns.userId.eqls(userTable.columns.id)
+          )
+          .compile()
+      ).toMatchInlineSnapshot(`
+Object {
+  "text": "SELECT \\"articles\\".\\"id\\" as \\"articles_id\\", \\"articles\\".\\"userid\\" as \\"articles_userid\\", \\"articles\\".\\"title\\" as \\"articles_title\\", \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM articles INNER JOIN users ON \\"articles\\".\\"userid\\" = \\"users\\".\\"id\\"",
+  "values": Array [],
+}
+`));
+  });
 });

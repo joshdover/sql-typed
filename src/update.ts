@@ -50,11 +50,7 @@ export class UpdateImpl<T extends TableAttributes> implements Update<T> {
 
     let whereClause = "";
     if (this.expressions.length > 0) {
-      const compiledExpr = compileExpressions(
-        this.table.columns,
-        this.expressions,
-        values
-      );
+      const compiledExpr = compileExpressions(this.expressions, values);
       whereClause = `WHERE ${compiledExpr.expression}`;
       values = compiledExpr.values;
     }
