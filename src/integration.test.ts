@@ -1,4 +1,10 @@
-import { TableAttributes, ColumnType, Transaction, primaryKey } from "./types";
+import {
+  TableAttributes,
+  ColumnType,
+  Transaction,
+  primaryKey,
+  JoinType
+} from "./types";
 import { createTable } from "./table";
 import { createPool } from "./pool";
 
@@ -23,6 +29,19 @@ describe("TypedSQL", () => {
     title: { type: ColumnType.String }
   });
 
+  interface Comment extends TableAttributes {
+    id: number;
+    userId: number;
+    articleId: number;
+    body: string;
+  }
+  const commentTable = createTable<Comment>("comments", {
+    id: { type: ColumnType.PrimaryKey },
+    userId: { type: ColumnType.Number },
+    articleId: { type: ColumnType.Number },
+    body: { type: ColumnType.String, databaseType: "text" }
+  });
+
   const pool = createPool({
     host: "localhost",
     user: "postgres",
@@ -44,6 +63,14 @@ describe("TypedSQL", () => {
         id serial,
         userId bigint not null,
         title varchar(256) not null
+      );
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS comments(
+        id serial,
+        userId bigint not null,
+        articleId bigint not null,
+        body text not null
       );
     `);
     client.release();
@@ -182,6 +209,52 @@ describe("TypedSQL", () => {
       const [foundArticle2, foundUser2] = joinedRow2;
       expect(foundArticle2).toEqual(article2);
       expect(foundUser2).toEqual(john);
+    })
+  );
+
+  it(
+    "can join multiple tables",
+    withTransaction(async transaction => {
+      const [john] = await userTable
+        .insert()
+        .values([{ name: "John" }])
+        .execute(transaction);
+      const [article1, article2] = await articleTable
+        .insert()
+        .values([
+          { userId: john.id, title: "How to write SQL" },
+          { userId: john.id, title: "How to get better at TypeScript" }
+        ])
+        .execute(transaction);
+
+      const [comment1, comment2] = await commentTable
+        .insert()
+        .values([
+          {
+            articleId: article1.id,
+            userId: john.id,
+            body: "This SQL article is great!"
+          },
+          {
+            articleId: article2.id,
+            userId: john.id,
+            body: "Thanks for teaching TypeScript!"
+          }
+        ])
+        .execute(transaction);
+
+      const rows = await articleTable
+        .select()
+        .join(userTable, ([a, u]) => a.userId.eqls(u.id), JoinType.Left)
+        .join(
+          commentTable,
+          ([a, _u, c]) => a.id.eqls(c.articleId),
+          JoinType.Left
+        )
+        .execute(transaction);
+
+      expect(rows[0]).toEqual([article1, john, comment1]);
+      expect(rows[1]).toEqual([article2, john, comment2]);
     })
   );
 });

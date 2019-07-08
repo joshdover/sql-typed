@@ -183,7 +183,20 @@ Object {
       title: { type: ColumnType.String }
     });
 
-    it("compiles a basic join", () =>
+    interface Comment extends TableAttributes {
+      id: number;
+      userId: number;
+      articleId: number;
+      body: string;
+    }
+    const commentTable = createTable<Comment>("comments", {
+      id: { type: ColumnType.PrimaryKey },
+      userId: { type: ColumnType.Number },
+      articleId: { type: ColumnType.Number },
+      body: { type: ColumnType.String }
+    });
+
+    it("compiles a multi join", () =>
       expect(
         articleTable
           .select()
@@ -191,10 +204,16 @@ Object {
             userTable,
             articleTable.columns.userId.eqls(userTable.columns.id)
           )
+          .join(
+            commentTable,
+            commentTable.columns.articleId
+              .eqls(articleTable.columns.id)
+              .and(commentTable.columns.userId.eqls(userTable.columns.id))
+          )
           .compile()
       ).toMatchInlineSnapshot(`
 Object {
-  "text": "SELECT \\"articles\\".\\"id\\" as \\"articles_id\\", \\"articles\\".\\"userid\\" as \\"articles_userid\\", \\"articles\\".\\"title\\" as \\"articles_title\\", \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\" FROM articles INNER JOIN users ON \\"articles\\".\\"userid\\" = \\"users\\".\\"id\\"",
+  "text": "SELECT \\"articles\\".\\"id\\" as \\"articles_id\\", \\"articles\\".\\"userid\\" as \\"articles_userid\\", \\"articles\\".\\"title\\" as \\"articles_title\\", \\"users\\".\\"id\\" as \\"users_id\\", \\"users\\".\\"name\\" as \\"users_name\\", \\"comments\\".\\"id\\" as \\"comments_id\\", \\"comments\\".\\"userid\\" as \\"comments_userid\\", \\"comments\\".\\"articleid\\" as \\"comments_articleid\\", \\"comments\\".\\"body\\" as \\"comments_body\\" FROM articles INNER JOIN users ON \\"articles\\".\\"userid\\" = \\"users\\".\\"id\\" INNER JOIN comments ON (\\"comments\\".\\"articleid\\" = \\"articles\\".\\"id\\") AND (\\"comments\\".\\"userid\\" = \\"users\\".\\"id\\")",
   "values": Array [],
 }
 `));

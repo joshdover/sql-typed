@@ -18,6 +18,7 @@ module.exports =  {
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/no-object-literal-type-assertion": "off",
-    "@typescript-eslint/explicit-member-accessibility": ['error', { overrides: { constructors: 'off' } } ]
+    "@typescript-eslint/explicit-member-accessibility": ['error', { overrides: { constructors: 'off' } } ],
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   },
 };

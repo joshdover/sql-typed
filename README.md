@@ -6,7 +6,7 @@ SQLTyped is a simple, typesafe SQL DSL implementation in TypeScript that aims to
 SQL interface for TypeScript applications. Goals of SQLTyped:
 - **No magic.** SQLTyped is not an ORM, you need to know SQL to use SQLTyped.
 - **No performance surprises.** The DSL looks like SQL and compiles down to predictable queries.
-- **Full type safety.** The DSL should never allow invalid queries.
+- **Best-in-class type safety.** The DSL should avoid as many invalid queries as possible.
 - **As few dependencies as possible.** As of now, SQLTyped only depends on the `pg` module for querying PostgreSQL.
 
 ```
@@ -81,3 +81,30 @@ To run tests:
 docker run --rm -d -p 5432:5432 postgres
 npm test
 ```
+
+## Type Safety
+
+There are some cases where TypeScript's type system cannot express a needed type (or I haven't figured out how). Known
+cases:
+
+- **Joins with 3 or more tables.** While joining two tables preserves type information, querying across 3 or more does
+  not. Example:
+  ```ts
+  const rows = await articleTable
+  .select()
+  /**
+   * This is typesafe. The args to the predication function are table-specific
+   * and the return type of the query is table-specific.
+   */
+  .join(userTable, ([a, u]) => a.userId.eqls(u.id), JoinType.Left)
+  /**
+   * Adding a 3rd table drops down to very wide vague types. This could be
+   * solved if TypesScript supported variadic types parameters.
+   */
+  .join(
+    commentTable,
+    ([a, _u, c]) => a.id.eqls(c.articleId),
+    JoinType.Left
+  )
+  .execute(transaction);
+  ```

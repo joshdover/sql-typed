@@ -6,9 +6,10 @@ import {
   CompiledQuery,
   Columns,
   Table,
-  MultiTableQuery,
+  DoubleTableQuery,
   Predicate,
-  JoinType
+  JoinType,
+  MultiTableQuery
 } from "./types";
 import { compileExpressions } from "./expression_compiler";
 
@@ -103,15 +104,16 @@ export class TableQueryImpl<T extends TableAttributes> extends BaseQueryImpl<T>
   ) {
     if (predicate === undefined) {
       return this;
-    } else if (typeof predicate === "function") {
-      const resolvedPredicate = predicate(this.table.columns);
-      return new TableQueryImpl<T>(this.table, [
-        ...this.predicates,
-        resolvedPredicate
-      ]);
-    } else {
-      return new TableQueryImpl<T>(this.table, [...this.predicates, predicate]);
     }
+    const resolvedPredicate =
+      typeof predicate === "function"
+        ? predicate(this.table.columns)
+        : predicate;
+
+    return new TableQueryImpl<T>(this.table, [
+      ...this.predicates,
+      resolvedPredicate
+    ]);
   }
 
   public join<TRight extends TableAttributes>(
@@ -119,7 +121,7 @@ export class TableQueryImpl<T extends TableAttributes> extends BaseQueryImpl<T>
     matchPredicate: Predicate<[Columns<T>, Columns<TRight>]>,
     joinType: JoinType = JoinType.Inner
   ) {
-    return new MultiTableQueryImpl<T, TRight>(
+    return new DoubleTableQueryImpl<T, TRight>(
       this.table,
       rightTable,
       matchPredicate,
@@ -135,11 +137,11 @@ export class TableQueryImpl<T extends TableAttributes> extends BaseQueryImpl<T>
   }
 }
 
-class MultiTableQueryImpl<
+class DoubleTableQueryImpl<
   TLeft extends TableAttributes,
   TRight extends TableAttributes
 > extends BaseQueryImpl<[TLeft, TRight]>
-  implements MultiTableQuery<TLeft, TRight> {
+  implements DoubleTableQuery<TLeft, TRight> {
   constructor(
     private readonly leftTable: Table<TLeft>,
     private readonly rightTable: Table<TRight>,
@@ -155,59 +157,49 @@ class MultiTableQueryImpl<
   public where(predicate?: Predicate<[Columns<TLeft>, Columns<TRight>]>) {
     if (predicate === undefined) {
       return this;
-    } else if (typeof predicate === "function") {
-      const resolvedPredicate = predicate([
-        this.leftTable.columns,
-        this.rightTable.columns
-      ]);
-
-      return new MultiTableQueryImpl<TLeft, TRight>(
-        this.leftTable,
-        this.rightTable,
-        this.matchPredicate,
-        this.joinType,
-        [...this.predicates, resolvedPredicate]
-      );
-    } else {
-      return new MultiTableQueryImpl<TLeft, TRight>(
-        this.leftTable,
-        this.rightTable,
-        this.matchPredicate,
-        this.joinType,
-        [...this.predicates, predicate]
-      );
     }
+    const resolvedPredicate =
+      typeof predicate === "function"
+        ? predicate([this.leftTable.columns, this.rightTable.columns])
+        : predicate;
+
+    return new DoubleTableQueryImpl<TLeft, TRight>(
+      this.leftTable,
+      this.rightTable,
+      this.matchPredicate,
+      this.joinType,
+      [...this.predicates, resolvedPredicate]
+    );
+  }
+
+  public join(
+    table: Table<any>,
+    matchPredicate: Predicate<Array<Columns<any>>>,
+    joinType: JoinType = JoinType.Inner
+  ) {
+    return new MultiTableQueryImpl(
+      this.leftTable,
+      [
+        {
+          table: this.rightTable,
+          matchPredicate: this.matchPredicate as Predicate<Array<Columns<any>>>,
+          joinType: this.joinType
+        },
+        { table, matchPredicate, joinType }
+      ],
+      this.predicates
+    );
   }
 
   protected compileJoin() {
-    const joinString = (() => {
-      switch (this.joinType) {
-        case JoinType.Inner:
-          return "INNER JOIN";
-        case JoinType.Left:
-          return "OUTER JOIN";
-        default:
-          throw new Error(`Unrecognized join type: ${this.joinType}`);
-      }
-    })();
-
-    const matchExpression = (() => {
-      if (typeof this.matchPredicate === "function") {
-        return this.matchPredicate([
-          this.leftTable.columns,
-          this.rightTable.columns
-        ]);
-      } else {
-        return this.matchPredicate;
-      }
-    })();
-
-    const { expression, values } = compileExpressions([matchExpression]);
-
-    return {
-      join: `${joinString} ${this.rightTable.tableName} ON ${expression}`,
-      joinValues: values
-    };
+    return compileJoin(
+      {
+        table: this.rightTable,
+        joinType: this.joinType,
+        matchPredicate: this.matchPredicate as Predicate<Array<Columns<any>>>
+      },
+      [this.leftTable.columns, this.rightTable.columns]
+    );
   }
 
   protected getBaseTable = () => this.leftTable.tableName;
@@ -224,6 +216,75 @@ class MultiTableQueryImpl<
       const right = remapRight(row);
       return [left, right];
     });
+  }
+}
+
+class MultiTableQueryImpl extends BaseQueryImpl<TableAttributes[]>
+  implements MultiTableQuery {
+  constructor(
+    private readonly leftTable: Table<any>,
+    private readonly joins: Array<Join>,
+    protected readonly predicates: ReadonlyArray<BooleanExpression>
+  ) {
+    super();
+  }
+
+  public where(predicate?: Predicate<Array<Columns<any>>>): MultiTableQuery {
+    if (predicate === undefined) {
+      return this;
+    }
+
+    const resolvedPredicate =
+      typeof predicate === "function"
+        ? predicate([
+            this.leftTable.columns,
+            ...this.joins.map(j => j.table.columns)
+          ])
+        : predicate;
+
+    return new MultiTableQueryImpl(this.leftTable, this.joins, [
+      ...this.predicates,
+      resolvedPredicate
+    ]);
+  }
+
+  public join(
+    table: Table<any>,
+    matchPredicate: Predicate<Array<Columns<any>>>,
+    joinType: JoinType = JoinType.Inner
+  ): MultiTableQuery {
+    return new MultiTableQueryImpl(
+      this.leftTable,
+      [...this.joins, { table, matchPredicate, joinType }],
+      this.predicates
+    );
+  }
+
+  protected compileJoin() {
+    const columns = [
+      this.leftTable.columns,
+      ...this.joins.map(j => j.table.columns)
+    ];
+    return this.joins.reduce(
+      ({ join, joinValues }, nextJoin) =>
+        compileJoin(nextJoin, columns, { join, joinValues }),
+      { join: "", joinValues: [] as any[] }
+    );
+  }
+
+  protected getBaseTable = () => this.leftTable.tableName;
+  protected getSelectColumns = () => [
+    ...getColumns(this.leftTable),
+    ...flatMap(this.joins, j => getColumns(j.table))
+  ];
+
+  protected transformResults(rows: TableAttributes[]) {
+    const remapLeft = remapPrefixedKeys(this.leftTable);
+    const remapJoins = this.joins.map(j => remapPrefixedKeys(j.table));
+    return rows.map(row => [
+      remapLeft(row),
+      ...remapJoins.map(remap => remap(row))
+    ]);
   }
 }
 
@@ -247,3 +308,54 @@ const remapPrefixedKeys = <T extends TableAttributes>(table: Table<T>) => (
       }),
       {} as T
     );
+
+interface Join {
+  table: Table<any>;
+  matchPredicate: Predicate<Array<Columns<any>>>;
+  joinType: JoinType;
+}
+
+const compileJoin = (
+  { table, matchPredicate, joinType }: Join,
+  columns: Array<Columns<any>>,
+  existingJoin: { join: string; joinValues: any[] } = {
+    join: "",
+    joinValues: []
+  }
+) => {
+  const joinString = (() => {
+    switch (joinType) {
+      case JoinType.Inner:
+        return "INNER JOIN";
+      case JoinType.Left:
+        return "LEFT JOIN";
+      default:
+        throw new Error(`Unrecognized join type: ${joinType}`);
+    }
+  })();
+
+  const matchExpression = (() => {
+    if (typeof matchPredicate === "function") {
+      return matchPredicate(columns);
+    } else {
+      return matchPredicate;
+    }
+  })();
+
+  const { expression, values } = compileExpressions(
+    [matchExpression],
+    existingJoin.joinValues
+  );
+
+  return {
+    join: [existingJoin.join, joinString, table.tableName, "ON", expression]
+      .filter(s => s.length > 0)
+      .join(" "),
+    joinValues: values
+  };
+};
+
+const flatMap = <T, U>(
+  values: T[],
+  callbackFn: (value: T, index: number, array: T[]) => U[]
+): U[] => values.map(callbackFn).reduce((acc, item) => acc.concat(item), []);

@@ -177,7 +177,7 @@ export interface TableQuery<T extends TableAttributes>
     table: Table<TRight>,
     matchPredicate: Predicate<[Columns<T>, Columns<TRight>]>,
     joinType?: JoinType
-  ): MultiTableQuery<T, TRight>;
+  ): DoubleTableQuery<T, TRight>;
 }
 
 export enum JoinType {
@@ -185,23 +185,42 @@ export enum JoinType {
   Left = 1
 }
 
-export interface MultiTableQuery<
+export interface DoubleTableQuery<
   TLeft extends TableAttributes,
   TRight extends TableAttributes
 > extends ExecutableQuery<Array<[TLeft, TRight]>> {
   count(): ExecutableQuery<number>;
   where(
     predicate?: Predicate<[Columns<TLeft>, Columns<TRight>]>
-  ): MultiTableQuery<TLeft, TRight>;
+  ): DoubleTableQuery<TLeft, TRight>;
+
+  /**
+   * Joins an additional table.
+   *
+   * @remarks
+   * This method loses some type information.
+   */
+  join<TNextRight extends TableAttributes>(
+    table: Table<TNextRight>,
+    matchPredicate: Predicate<Array<Columns<any>>>,
+    joinType?: JoinType
+  ): MultiTableQuery;
+}
+
+export interface MultiTableQuery extends ExecutableQuery<TableAttributes[][]> {
+  count(): ExecutableQuery<number>;
+  where(predicate?: Predicate<Array<Columns<any>>>): MultiTableQuery;
+  join(
+    table: Table<any>,
+    matchPredicate: Predicate<Array<Columns<any>>>,
+    joinType?: JoinType
+  ): MultiTableQuery;
 }
 
 export interface ExecutableQuery<T> {
   compile(): CompiledQuery;
   execute(transaction: Transaction): Promise<T>;
 }
-
-// select column_name, data_type, character_maximum_length
-// from INFORMATION_SCHEMA.COLUMNS where table_name = '<name of table>';
 
 export type TableDefinition = { columnName: string; dataType: string }[];
 
