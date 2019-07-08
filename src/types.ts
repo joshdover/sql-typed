@@ -9,9 +9,7 @@ export type PoolConfig = PGPoolConfig;
 
 export interface Pool {
   connect: PGPool["connect"];
-  transaction<T>(
-    cb: (transaction: Transaction) => Promise<T>
-  ): Promise<T | void>;
+  transaction<T>(cb: (transaction: Transaction) => Promise<T>): Promise<T>;
 }
 
 export interface Transaction {
