@@ -25,9 +25,7 @@ describe("migration compilation", () => {
         .compile()
     ).toMatchInlineSnapshot(`
 Object {
-  "text": "CREATE TABLE users (
-  id serial, firstName varchar(256), lastName text, nickname varchar(256) NOT NULL, age bigint DEFAULT 0
-)",
+  "text": "CREATE TABLE users \\"users\\".\\"id\\" serial, \\"users\\".\\"firstname\\" varchar(256), \\"users\\".\\"lastname\\" text, \\"users\\".\\"nickname\\" varchar(256) NOT NULL, \\"users\\".\\"age\\" bigint DEFAULT 0",
 }
 `);
   });
@@ -40,8 +38,7 @@ Object {
         .compile()
     ).toMatchInlineSnapshot(`
 Object {
-  "text": "ALTER TABLE users
-  ADD COLUMN id serial, ADD COLUMN lastName text, ADD COLUMN nickname varchar(256) NOT NULL, ADD COLUMN age bigint DEFAULT 0",
+  "text": "ALTER TABLE users ADD COLUMN \\"users\\".\\"id\\" serial, ADD COLUMN \\"users\\".\\"lastname\\" text, ADD COLUMN \\"users\\".\\"nickname\\" varchar(256) NOT NULL, ADD COLUMN \\"users\\".\\"age\\" bigint DEFAULT 0",
 }
 `);
   });

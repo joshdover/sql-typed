@@ -1,5 +1,3 @@
-import dedent from "dedent";
-
 import {
   TableAttributes,
   Table,
@@ -31,19 +29,15 @@ class CreateMigration<T extends TableAttributes> implements Migration {
     const columns = Object.keys(this.table.columnConfigs)
       .map(
         columnName =>
-          [columnName, this.table.columnConfigs[columnName]] as [
-            string,
-            ColumnConfig<any>
-          ]
+          [
+            `"${this.table.tableName}"."${columnName.toLowerCase()}"`,
+            this.table.columnConfigs[columnName]
+          ] as [string, ColumnConfig<any>]
       )
       .map(([columnName, config]) => getColumnDdl(columnName, config));
 
     return {
-      text: dedent(`
-        CREATE TABLE ${this.table.tableName} (
-          ${columns.join(", ")}
-        )
-      `)
+      text: ["CREATE TABLE", this.table.tableName, columns.join(", ")].join(" ")
     };
   }
 
@@ -68,19 +62,18 @@ class UpdateMigration<T extends TableAttributes> implements Migration {
     const addColumns = columnsNeeded
       .map(
         columnName =>
-          [columnName, this.table.columnConfigs[columnName]] as [
-            string,
-            ColumnConfig<any>
-          ]
+          [
+            `"${this.table.tableName}"."${columnName.toLowerCase()}"`,
+            this.table.columnConfigs[columnName]
+          ] as [string, ColumnConfig<any>]
       )
       .map(([columnName, config]) => getColumnDdl(columnName, config))
       .map(ddl => `ADD COLUMN ${ddl}`);
 
     return {
-      text: dedent(`
-        ALTER TABLE ${this.table.tableName}
-          ${addColumns.join(", ")}
-      `)
+      text: ["ALTER TABLE", this.table.tableName, addColumns.join(", ")].join(
+        " "
+      )
     };
   }
 
