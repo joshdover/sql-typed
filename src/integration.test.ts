@@ -43,10 +43,11 @@ describe("TypedSQL", () => {
   });
 
   const pool = createPool({
-    host: "localhost",
-    user: "postgres",
-    password: "postgres",
-    database: "postgres"
+    host: process.env.TEST_PG_HOST || "localhost",
+    port: Number(process.env.TEST_PG_PORT) || 5432,
+    user: process.env.TEST_PG_USER || "postgres",
+    password: process.env.TEST_PG_PASSWORD || "postgres",
+    database: process.env.TEST_PG_DATABASE || "postgres"
   });
 
   // Create tables
